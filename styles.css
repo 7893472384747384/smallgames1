@@ -513,6 +513,25 @@ button {
   color: #a9cad7;
 }
 
+.exit-button {
+  border-color: rgba(255, 137, 116, 0.45);
+  color: #ffc2b4;
+  background: rgba(129, 46, 45, 0.13);
+}
+
+.exit-button:hover,
+.exit-button:focus-visible {
+  border-color: rgba(255, 160, 137, 0.85);
+  color: #fff0e8;
+}
+
+.exit-note {
+  margin-top: 7px;
+  color: #6f8d9a;
+  font-size: 8px;
+  letter-spacing: 0.05em;
+}
+
 .endless-button {
   width: min(100%, 260px);
   height: 48px;

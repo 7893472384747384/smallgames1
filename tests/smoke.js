@@ -218,6 +218,18 @@ window.__FENGYUN_GAME__.endEndless();
 assert.equal(window.__FENGYUN_GAME__.snapshot().state, "gameover");
 assert.ok(JSON.parse(storedSave).bestEndlessTime >= 65);
 assert.ok(JSON.parse(storedSave).bestEndlessScore > 0);
+window.__FENGYUN_GAME__.startEndless();
+window.__FENGYUN_GAME__.pause();
+assert.equal(window.__FENGYUN_GAME__.snapshot().state, "paused");
+window.__FENGYUN_GAME__.returnToHangar();
+assert.deepEqual(
+  {
+    state: window.__FENGYUN_GAME__.snapshot().state,
+    mode: window.__FENGYUN_GAME__.snapshot().mode,
+    time: window.__FENGYUN_GAME__.snapshot().time,
+  },
+  { state: "menu", mode: "campaign", time: 0 },
+);
 window.__FENGYUN_GAME__.returnToHangar();
 window.__FENGYUN_GAME__.selectFighter("pulse");
 window.__FENGYUN_GAME__.start(1);

@@ -47,6 +47,7 @@
     pauseButton: document.getElementById("pauseButton"),
     resumeButton: document.getElementById("resumeButton"),
     restartFromPauseButton: document.getElementById("restartFromPauseButton"),
+    returnToHangarFromPauseButton: document.getElementById("returnToHangarFromPauseButton"),
     replayButton: document.getElementById("replayButton"),
     returnToHangarButton: document.getElementById("returnToHangarButton"),
     soundButton: document.getElementById("soundButton"),

@@ -60,6 +60,7 @@
       ui.returnToHangarButton.addEventListener("click", () => this.returnToHangar());
       ui.resumeButton.addEventListener("click", () => this.resume());
       ui.restartFromPauseButton.addEventListener("click", () => this.restartCurrent());
+      ui.returnToHangarFromPauseButton.addEventListener("click", () => this.returnToHangar());
       ui.pauseButton.addEventListener("click", () => this.togglePause());
       ui.soundButton.addEventListener("click", () => this.toggleSound());
       ui.settingsButton.addEventListener("click", () => this.openSettings());

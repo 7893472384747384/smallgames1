@@ -14,6 +14,10 @@ const game = new FY.Game();
     startEndless: () => game.startEndless(),
     selectFighter: (fighterId) => game.selectFighter(fighterId),
     returnToHangar: () => game.returnToHangar(),
+    pause: () => {
+      game.pause();
+      return game.getSnapshot();
+    },
     advanceEndless: (seconds = 0) => game.debugAdvanceEndless(seconds),
     advanceWorld: (seconds = 0) => game.debugAdvanceWorld(seconds),
     endEndless: () => {
