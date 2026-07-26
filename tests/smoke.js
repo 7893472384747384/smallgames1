@@ -204,7 +204,11 @@ assert.equal(
   2,
 );
 assert.equal(window.__FENGYUN_GAME__.snapshot().runStats.bossPartsDestroyed, 2);
+window.__FENGYUN_GAME__.setRatingTestState({ hull: 3, hits: 4 });
 assert.equal(window.__FENGYUN_GAME__.getCampaignRating().rank, "S");
+window.__FENGYUN_GAME__.setRatingTestState({ hull: 2, hits: 0 });
+assert.equal(window.__FENGYUN_GAME__.getCampaignRating().rank, "A");
+window.__FENGYUN_GAME__.setRatingTestState({ hull: 3, hits: 0 });
 window.__FENGYUN_GAME__.spawnFunctionalEnemies();
 assert.deepEqual(window.__FENGYUN_GAME__.snapshot().enemyTypes, {
   guardian: 1,

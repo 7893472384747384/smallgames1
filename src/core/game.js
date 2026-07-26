@@ -883,7 +883,7 @@
         this.runStats.spawned > 0 ? this.runStats.defeated / this.runStats.spawned : 1;
       const objectives = [
         { label: "击破率80%", passed: destruction >= 0.8 },
-        { label: "机体无受击", passed: this.runStats.hits === 0 },
+        { label: "三条命未减少", passed: this.player.hull === 3 },
         { label: "部件全破坏", passed: this.runStats.bossPartsDestroyed >= 2 },
       ];
       const passed = objectives.filter((objective) => objective.passed).length;

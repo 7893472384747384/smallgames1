@@ -74,5 +74,10 @@ const game = new FY.Game();
       return game.getSnapshot();
     },
     getCampaignRating: () => game.calculateCampaignRating(),
+    setRatingTestState: ({ hull = 3, hits = 0 } = {}) => {
+      game.player.hull = Math.max(0, Math.min(3, Math.floor(Number(hull) || 0)));
+      game.runStats.hits = Math.max(0, Math.floor(Number(hits) || 0));
+      return game.getSnapshot();
+    },
   };
 })();
