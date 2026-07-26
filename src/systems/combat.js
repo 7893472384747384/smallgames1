@@ -2,7 +2,7 @@
   "use strict";
 
   const FY = window.FY;
-  const { WIDTH, HEIGHT, TAU, STORAGE_KEY, ENVIRONMENTS, LEVELS, ENDLESS_ENVIRONMENTS, ENDLESS_BOSSES, FIGHTERS, canvas, ctx, sprites, ui, clamp, lerp, random, distanceSquared, formatScore, formatTime, saveData } = FY;
+  const { WIDTH, HEIGHT, TAU, STORAGE_KEY, ENVIRONMENTS, LEVELS, ENDLESS_ENVIRONMENTS, ENDLESS_BOSSES, FIGHTERS, BALANCE, canvas, ctx, sprites, ui, clamp, lerp, random, distanceSquared, formatScore, formatTime, saveData } = FY;
 
   FY.mixins.combat = {
     fireAimed(x, y, speed, color) {
@@ -217,7 +217,16 @@
       }[enemy.type] || 0;
       if (Math.random() >= chance) return;
       const roll = Math.random();
-      const type = roll < 0.38 ? "energy" : roll < 0.63 ? "repair" : roll < 0.83 ? "overdrive" : "score";
+      const type =
+        roll < 0.34
+          ? "energy"
+          : roll < 0.57
+            ? "repair"
+            : roll < 0.74
+              ? "overdrive"
+              : roll < 0.86
+                ? "amplifier"
+                : "score";
       this.spawnPickup(type, enemy.x, enemy.y);
     },
 
@@ -260,6 +269,15 @@
         color = "#ff9e5f";
         this.player.overdriveTimer = Math.min(16, this.player.overdriveTimer + 8);
         label = "火力过载 8秒";
+      } else if (pickup.type === "amplifier") {
+        color = "#ffc15c";
+        if (this.player.amplifierCharges >= BALANCE.amplifier.maxCharges) {
+          this.score += 700;
+          label = "倍增核心已满 · +700";
+        } else {
+          this.player.amplifierCharges += 1;
+          label = `倍增核心 +1 · 库存 ${this.player.amplifierCharges}/3`;
+        }
       } else {
         color = "#ffe06e";
         this.score += 700;
@@ -316,8 +334,13 @@
       this.enemyBullets.length = 0;
       const rewards =
         this.mode === "endless"
-          ? ["energy", this.player.shield < 70 ? "repair" : "overdrive", "score"]
-          : ["repair", "energy", "overdrive", "score"];
+          ? [
+              "energy",
+              this.player.shield < 70 ? "repair" : "overdrive",
+              "amplifier",
+              "score",
+            ]
+          : ["repair", "energy", "overdrive", "amplifier", "score"];
       rewards.forEach((type, index) => {
         const offset = index - (rewards.length - 1) / 2;
         this.spawnPickup(type, x + offset * 30, y + 8, {

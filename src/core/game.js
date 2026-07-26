@@ -72,6 +72,10 @@
         this.audio.unlock();
         this.activateBurst();
       });
+      ui.amplifierButton.addEventListener("click", () => {
+        this.audio.unlock();
+        this.activateAmplifier();
+      });
       if (new URLSearchParams(window.location.search).has("debug")) {
         ui.debugControls.hidden = false;
         ui.debugEndlessButton.addEventListener("click", () => this.startEndless());
@@ -116,12 +120,16 @@
           "KeyS",
           "KeyD",
           "Space",
+          "KeyE",
           "Escape",
         ];
         if (controlled.includes(event.code)) event.preventDefault();
         if (event.code === "Space" && !event.repeat) {
           this.audio.unlock();
           this.activateBurst();
+        } else if (event.code === "KeyE" && !event.repeat) {
+          this.audio.unlock();
+          this.activateAmplifier();
         } else if (event.code === "Escape" && !event.repeat) {
           this.togglePause();
         }
@@ -208,6 +216,8 @@
         sinceHit: 99,
         burstTimer: 0,
         overdriveTimer: 0,
+        amplifierCharges: 0,
+        amplifierTimer: 0,
         laserHeat: 0,
         laserCooling: false,
         laserActive: false,
@@ -230,6 +240,7 @@
       this.waves = this.buildWaves();
       this.updateLevelUI();
       ui.burstButton.classList.remove("ready");
+      ui.amplifierButton.classList.remove("ready", "active");
     }
 
 
@@ -412,6 +423,29 @@
       ui.burstButton.classList.remove("ready");
     }
 
+    activateAmplifier() {
+      const player = this.player;
+      if (this.state !== "playing" || player.amplifierCharges <= 0) return false;
+      player.amplifierCharges -= 1;
+      player.amplifierTimer = Math.min(
+        BALANCE.amplifier.maxDuration,
+        player.amplifierTimer + BALANCE.amplifier.duration,
+      );
+      this.pickupNotice = {
+        label: `倍增核心启动 · 火力 ×2`,
+        color: "#ffc36c",
+        timer: 1.45,
+        maxTimer: 1.45,
+      };
+      this.screenFlash = Math.max(this.screenFlash, 0.18);
+      this.shake = Math.max(this.shake, 5);
+      this.audio.tone(520, 0.18, "sawtooth", 0.028, 430);
+      for (let i = 0; i < 18; i += 1) {
+        this.spawnSpark(player.x, player.y, i % 2 ? "#fff09b" : "#ff8e55", 0.85);
+      }
+      return true;
+    }
+
     loop(frameTime) {
       const dt = Math.min(0.033, Math.max(0, (frameTime - this.lastFrame) / 1000));
       this.lastFrame = frameTime;
@@ -491,6 +525,7 @@
       player.sinceHit += dt;
       player.burstTimer = Math.max(0, player.burstTimer - dt);
       player.overdriveTimer = Math.max(0, player.overdriveTimer - dt);
+      player.amplifierTimer = Math.max(0, player.amplifierTimer - dt);
       if (player.sinceHit > 3.8 && player.shield < 100) {
         player.shield = Math.min(100, player.shield + dt * 8);
       }
@@ -552,7 +587,12 @@
           life: random(0.18, 0.35),
           maxLife: 0.35,
           size: random(1.5, 3.5),
-          color: player.burstTimer > 0 || player.overdriveTimer > 0 ? "#fff5a1" : "#45dfff",
+          color:
+            player.amplifierTimer > 0
+              ? "#ffb45f"
+              : player.burstTimer > 0 || player.overdriveTimer > 0
+                ? "#fff5a1"
+                : "#45dfff",
         });
       }
     }
@@ -818,20 +858,24 @@
           id: this.fighterId,
           name: FIGHTERS[this.fighterId].name,
           weapon: FIGHTERS[this.fighterId].weapon,
-            laserHeat: Math.round(this.player.laserHeat),
-            laserCooling: this.player.laserCooling,
-            laserActive: this.player.laserActive,
-            dualLaserActive: this.player.dualLaserActive,
-            dualLaserFireTimer: Number(this.player.dualLaserFireTimer.toFixed(2)),
-            dualLaserCooldown: Number(this.player.dualLaserCooldown.toFixed(2)),
-            bombTimer: Number(this.player.bombTimer.toFixed(2)),
-            bombInterval: Number(this.player.bombInterval.toFixed(2)),
-          },
+          laserHeat: Math.round(this.player.laserHeat),
+          laserCooling: this.player.laserCooling,
+          laserActive: this.player.laserActive,
+          dualLaserActive: this.player.dualLaserActive,
+          dualLaserFireTimer: Number(this.player.dualLaserFireTimer.toFixed(2)),
+          dualLaserCooldown: Number(this.player.dualLaserCooldown.toFixed(2)),
+          bombTimer: Number(this.player.bombTimer.toFixed(2)),
+          bombInterval: Number(this.player.bombInterval.toFixed(2)),
+          firepowerMultiplier:
+            this.player.amplifierTimer > 0 ? BALANCE.amplifier.damageMultiplier : 1,
+        },
         player: {
           hull: this.player.hull,
           shield: Math.round(this.player.shield),
           energy: Math.round(this.player.energy),
           overdrive: Number(this.player.overdriveTimer.toFixed(1)),
+          amplifierCharges: this.player.amplifierCharges,
+          amplifierTimer: Number(this.player.amplifierTimer.toFixed(1)),
         },
         enemies: this.enemies.length,
         playerBullets: this.playerBullets.length,
@@ -906,8 +950,8 @@
 
     debugSpawnPickups() {
       if (this.state !== "playing") this.start();
-      ["repair", "energy", "overdrive", "score"].forEach((type, index) => {
-        this.spawnPickup(type, 150 + index * 50, this.player.y - 135, {
+      ["repair", "energy", "overdrive", "amplifier", "score"].forEach((type, index) => {
+        this.spawnPickup(type, 125 + index * 50, this.player.y - 135, {
           vx: 0,
           vy: 25,
         });

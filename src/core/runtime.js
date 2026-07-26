@@ -54,6 +54,8 @@
     closeSettingsButton: document.getElementById("closeSettingsButton"),
     shieldValueToggle: document.getElementById("shieldValueToggle"),
     burstButton: document.getElementById("burstButton"),
+    amplifierButton: document.getElementById("amplifierButton"),
+    amplifierCount: document.getElementById("amplifierCount"),
     bestScoreLabel: document.getElementById("bestScoreLabel"),
     endlessBestLabel: document.getElementById("endlessBestLabel"),
     resultKicker: document.getElementById("resultKicker"),

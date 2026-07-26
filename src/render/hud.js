@@ -138,6 +138,18 @@
 
       const ready = this.player.energy >= 100 && this.state === "playing";
       ui.burstButton.classList.toggle("ready", ready);
+      const amplifierReady = this.player.amplifierCharges > 0 && this.state === "playing";
+      const amplifierActive = this.player.amplifierTimer > 0;
+      ui.amplifierButton.classList.toggle("ready", amplifierReady);
+      ui.amplifierButton.classList.toggle("active", amplifierActive);
+      ui.amplifierButton.disabled = !amplifierReady;
+      ui.amplifierCount.textContent = String(this.player.amplifierCharges);
+      ui.amplifierButton.setAttribute(
+        "aria-label",
+        amplifierActive
+          ? `双倍火力剩余 ${this.player.amplifierTimer.toFixed(1)} 秒，库存 ${this.player.amplifierCharges} 个`
+          : `释放倍增核心，库存 ${this.player.amplifierCharges} 个`,
+      );
     },
 
     drawPickupNotice() {

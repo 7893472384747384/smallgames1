@@ -226,6 +226,69 @@ button {
   transform: scale(0.92);
 }
 
+.amplifier-button {
+  position: absolute;
+  z-index: 4;
+  right: 18px;
+  bottom: 99px;
+  width: 64px;
+  height: 49px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid rgba(255, 157, 92, 0.48);
+  border-radius: 8px 2px 8px 2px;
+  background:
+    linear-gradient(145deg, rgba(255, 126, 61, 0.19), rgba(32, 12, 31, 0.88)),
+    #071522;
+  color: #ffb47d;
+  box-shadow: 0 0 18px rgba(255, 108, 58, 0.12);
+  opacity: 0.48;
+  transition: 160ms ease;
+}
+
+.amplifier-button span {
+  font: 900 18px Consolas, monospace;
+  line-height: 1;
+}
+
+.amplifier-button small {
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+.amplifier-button b {
+  color: #fff3d4;
+  font: inherit;
+}
+
+.amplifier-button.ready {
+  border-color: #ffd098;
+  color: #fff0c9;
+  opacity: 1;
+  box-shadow:
+    0 0 0 3px rgba(255, 140, 72, 0.08),
+    0 0 24px rgba(255, 110, 62, 0.3);
+}
+
+.amplifier-button.active {
+  border-color: #fff4ad;
+  background:
+    linear-gradient(145deg, rgba(255, 195, 75, 0.4), rgba(113, 37, 33, 0.9)),
+    #23121a;
+  animation: amplifier-pulse 0.55s ease-in-out infinite alternate;
+}
+
+.amplifier-button:active {
+  transform: scale(0.94);
+}
+
+.amplifier-button:disabled {
+  cursor: default;
+}
+
 .overlay-panel {
   position: absolute;
   z-index: 10;
@@ -675,6 +738,15 @@ button {
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes amplifier-pulse {
+  from {
+    box-shadow: 0 0 16px rgba(255, 126, 68, 0.35);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(255, 222, 112, 0.72);
   }
 }
 

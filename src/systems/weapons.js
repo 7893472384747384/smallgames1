@@ -7,6 +7,10 @@
   FY.mixins.weapons = {
     firePlayerWeapon() {
       const boosted = this.player.burstTimer > 0 || this.player.overdriveTimer > 0;
+      const multiplier =
+        this.player.amplifierTimer > 0 ? BALANCE.amplifier.damageMultiplier : 1;
+      const damage =
+        (boosted ? BALANCE.pulse.boostedDamage : BALANCE.pulse.damage) * multiplier;
       this.playerBullets.push(
         {
           x: this.player.x - 7,
@@ -14,7 +18,7 @@
           vx: boosted ? -55 : -18,
           vy: -BALANCE.pulse.speed,
           radius: 3,
-          damage: boosted ? BALANCE.pulse.boostedDamage : BALANCE.pulse.damage,
+          damage,
           life: 1.7,
         },
         {
@@ -23,7 +27,7 @@
           vx: boosted ? 55 : 18,
           vy: -BALANCE.pulse.speed,
           radius: 3,
-          damage: boosted ? BALANCE.pulse.boostedDamage : BALANCE.pulse.damage,
+          damage,
           life: 1.7,
         },
       );
@@ -56,7 +60,9 @@
       player.laserEndY = target ? target.y + target.radius * 0.72 : 0;
       const boosted = player.burstTimer > 0 || player.overdriveTimer > 0;
       const damage =
-        (boosted ? BALANCE.laser.boostedDamagePerSecond : BALANCE.laser.damagePerSecond) * dt;
+        (boosted ? BALANCE.laser.boostedDamagePerSecond : BALANCE.laser.damagePerSecond) *
+        (player.amplifierTimer > 0 ? BALANCE.amplifier.damageMultiplier : 1) *
+        dt;
       if (target) {
         this.damageLaserTarget(target, damage);
         if (player.laserSparkTimer <= 0) {
@@ -114,7 +120,9 @@
       player.dualLaserActive = player.dualLaserCooldown > 0;
       if (player.dualLaserFireTimer > 0) return;
 
-      const damage = boosted ? BALANCE.dual.boostedDamage : BALANCE.dual.damage;
+      const damage =
+        (boosted ? BALANCE.dual.boostedDamage : BALANCE.dual.damage) *
+        (player.amplifierTimer > 0 ? BALANCE.amplifier.damageMultiplier : 1);
       const speed = -(boosted ? BALANCE.dual.boostedSpeed : BALANCE.dual.speed);
       for (const offset of [-11, 11]) {
         this.playerBullets.push({
@@ -153,7 +161,9 @@
         x: target.x,
         y: target.y,
         radius: boosted ? BALANCE.bomber.boostedRadius : BALANCE.bomber.radius,
-        damage: boosted ? BALANCE.bomber.boostedDamage : BALANCE.bomber.damage,
+        damage:
+          (boosted ? BALANCE.bomber.boostedDamage : BALANCE.bomber.damage) *
+          (player.amplifierTimer > 0 ? BALANCE.amplifier.damageMultiplier : 1),
         timer: 0,
         strikeAt: BALANCE.bomber.lockDelay,
         duration: 0.72,

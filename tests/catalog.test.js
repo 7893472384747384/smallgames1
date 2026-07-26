@@ -24,6 +24,9 @@ for (const fighter of Object.values(FIGHTERS)) {
 assert.equal(BALANCE.dual.interval, 0.18);
 assert.equal(BALANCE.bomber.radius, 58);
 assert.equal(BALANCE.bomber.lockDelay, 0.3);
+assert.equal(BALANCE.amplifier.maxCharges, 3);
+assert.equal(BALANCE.amplifier.duration, 7);
+assert.equal(BALANCE.amplifier.damageMultiplier, 2);
 assert.ok(Object.isFrozen(BALANCE));
 
 console.log("Catalog and balance tests passed.");

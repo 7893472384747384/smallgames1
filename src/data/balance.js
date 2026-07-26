@@ -37,5 +37,11 @@
       lockDelay: 0.3,
       edgeDamageRatio: 0.62,
     }),
+    amplifier: Object.freeze({
+      maxCharges: 3,
+      duration: 7,
+      maxDuration: 14,
+      damageMultiplier: 2,
+    }),
   });
 })();

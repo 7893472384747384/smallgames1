@@ -26,6 +26,21 @@
         ctx.arc(0, 0, pulse, 0, TAU);
         ctx.stroke();
       }
+      if (player.amplifierTimer > 0) {
+        const pulse = 42 + Math.sin(this.ambientTime * 13) * 4;
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.strokeStyle = "rgba(255, 190, 86, 0.78)";
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = "#ff8c46";
+        ctx.lineWidth = 2.2;
+        ctx.setLineDash([7, 5]);
+        ctx.lineDashOffset = -this.ambientTime * 22;
+        ctx.beginPath();
+        ctx.arc(0, 0, pulse, 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+      }
 
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
@@ -46,7 +61,9 @@
       if (playerSprite.complete && playerSprite.naturalWidth > 0) {
         ctx.shadowBlur = 16;
         ctx.shadowColor =
-          player.burstTimer > 0
+          player.amplifierTimer > 0
+            ? "#ffad54"
+            : player.burstTimer > 0
             ? "#fff2a3"
             : this.fighterId === "dual"
               ? "#ff724f"
@@ -98,7 +115,8 @@
       if (this.fighterId !== "laser" || !player.laserActive) return;
       const startY = player.y - 43;
       const endY = Math.min(startY - 4, player.laserEndY);
-      const boosted = player.burstTimer > 0 || player.overdriveTimer > 0;
+      const boosted =
+        player.burstTimer > 0 || player.overdriveTimer > 0 || player.amplifierTimer > 0;
       const heatRatio = player.laserHeat / 100;
       const beamColor = heatRatio > 0.82 ? "#fff0a8" : "#75f4ff";
       const shimmer = Math.sin(this.ambientTime * 42) * 0.7;
@@ -131,7 +149,8 @@
       const player = this.player;
       if (!player.dualLaserActive) return;
       const startY = player.y - 37;
-      const boosted = player.burstTimer > 0 || player.overdriveTimer > 0;
+      const boosted =
+        player.burstTimer > 0 || player.overdriveTimer > 0 || player.amplifierTimer > 0;
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       for (const x of [player.x - 11, player.x + 11]) {
@@ -516,6 +535,7 @@
         repair: "#68f0b0",
         energy: "#6ceaff",
         overdrive: "#ff9d5c",
+        amplifier: "#ffc15c",
         score: "#ffe36d",
       };
       for (const pickup of this.pickups) {
@@ -567,6 +587,11 @@
             ctx.lineTo(5, i * 4 + 2);
             ctx.stroke();
           }
+        } else if (pickup.type === "amplifier") {
+          ctx.font = "900 8px Consolas, monospace";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("×2", 0, 0);
         } else {
           ctx.beginPath();
           ctx.moveTo(0, -7);

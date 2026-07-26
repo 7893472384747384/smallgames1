@@ -22,6 +22,17 @@ const game = new FY.Game();
     },
     skipToBoss: () => game.debugSkipToBoss(),
     spawnPickups: () => game.debugSpawnPickups(),
+    grantAmplifiers: (count = 1) => {
+      game.player.amplifierCharges = Math.min(
+        FY.BALANCE.amplifier.maxCharges,
+        game.player.amplifierCharges + Math.max(0, Math.floor(Number(count) || 0)),
+      );
+      return game.getSnapshot();
+    },
+    activateAmplifier: () => {
+      game.activateAmplifier();
+      return game.getSnapshot();
+    },
     spawnBombTargets: () => {
       game.enemies.length = 0;
       game.spawnEnemy("scout", 200, 180, { phase: 0 });
