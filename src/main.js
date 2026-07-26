@@ -1,0 +1,38 @@
+(() => {
+  "use strict";
+
+  const FY = window.FY;
+const game = new FY.Game();
+  window.__FENGYUN_GAME__ = {
+    snapshot: () => game.getSnapshot(),
+    start: (level = 1) => game.start(level),
+    startLevelTwo: () => game.start(2),
+    startLevelThree: () => game.start(3),
+    startLevelFour: () => game.start(4),
+    startEndless: () => game.startEndless(),
+    selectFighter: (fighterId) => game.selectFighter(fighterId),
+    returnToHangar: () => game.returnToHangar(),
+    advanceEndless: (seconds = 0) => game.debugAdvanceEndless(seconds),
+    advanceWorld: (seconds = 0) => game.debugAdvanceWorld(seconds),
+    endEndless: () => {
+      if (game.mode === "endless" && game.state === "playing") game.finish(false);
+      return game.getSnapshot();
+    },
+    skipToBoss: () => game.debugSkipToBoss(),
+    spawnPickups: () => game.debugSpawnPickups(),
+    spawnBombTargets: () => {
+      game.enemies.length = 0;
+      game.spawnEnemy("scout", 200, 180, { phase: 0 });
+      game.spawnEnemy("scout", 225, 190, { phase: 0.4 });
+      game.spawnEnemy("scout", 250, 180, { phase: 0.8 });
+      game.player.bombTimer = 0;
+      return game.getSnapshot();
+    },
+    chargeBurst: () => {
+      game.player.energy = 100;
+    },
+    damageBoss: (amount = 500) => {
+      if (game.boss) game.boss.hp -= Math.max(0, Number(amount) || 0);
+    },
+  };
+})();

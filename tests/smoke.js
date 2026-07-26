@@ -23,15 +23,27 @@ const context = new Proxy(
 );
 
 const elements = new Map();
-const createElement = (id) => ({
-  id,
-  hidden: false,
-  checked: true,
-  textContent: "",
-  classList: { add: noOp, remove: noOp, toggle: noOp },
-  addEventListener: noOp,
-  setAttribute: noOp,
-});
+const createElement = (id = "") => {
+  const element = {
+    id,
+    hidden: false,
+    checked: true,
+    textContent: "",
+    className: "",
+    children: [],
+    classList: { add: noOp, remove: noOp, toggle: noOp },
+    addEventListener: noOp,
+    setAttribute: noOp,
+    append(...children) {
+      this.children.push(...children);
+    },
+    appendChild(child) {
+      this.children.push(child);
+      return child;
+    },
+  };
+  return element;
+};
 
 const canvas = {
   ...createElement("gameCanvas"),
@@ -46,6 +58,7 @@ global.document = {
   hidden: false,
   title: "",
   addEventListener: noOp,
+  createElement: () => createElement(),
   getElementById(id) {
     if (!elements.has(id)) elements.set(id, createElement(id));
     return elements.get(id);
@@ -77,7 +90,23 @@ global.requestAnimationFrame = (callback) => {
   if (!frameCallback) frameCallback = callback;
 };
 
-require("../src/game.js");
+require("../src/core/runtime.js");
+require("../src/data/catalog.js");
+require("../src/data/balance.js");
+require("../src/ui/hangar.js");
+require("../src/services/storage.js");
+require("../src/services/audio.js");
+require("../src/systems/director.js");
+require("../src/systems/hazards.js");
+require("../src/systems/weapons.js");
+require("../src/systems/bosses.js");
+require("../src/systems/combat.js");
+require("../src/render/backgrounds.js");
+require("../src/render/entities.js");
+require("../src/render/effects.js");
+require("../src/render/hud.js");
+require("../src/core/game.js");
+require("../src/main.js");
 
 window.__FENGYUN_GAME__.selectFighter("laser");
 assert.equal(window.__FENGYUN_GAME__.snapshot().fighter.id, "laser");

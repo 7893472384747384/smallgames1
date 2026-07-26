@@ -58,19 +58,30 @@ python -m http.server 8080
 ├─ index.html
 ├─ styles.css
 ├─ src/
-│  └─ game.js
+│  ├─ core/          # 运行环境、Game 生命周期与主循环
+│  ├─ data/          # 战机、关卡、环境和统一平衡参数
+│  ├─ systems/       # 武器、战斗、关卡导演、BOSS 与天气机制
+│  ├─ render/        # 背景、实体、特效与 HUD 绘制
+│  ├─ services/      # 本地存档与合成音效
+│  ├─ ui/            # 数据驱动的机库界面
+│  └─ main.js        # 游戏启动与调试接口
 ├─ tests/
-│  └─ smoke.js     # 闯关与无尽模式静态集成测试
+│  ├─ catalog.test.js
+│  ├─ storage.test.js
+│  ├─ smoke.js
+│  └─ run-all.js
 ├─ assets/
 │  ├─ ships/       # 游戏运行时优化素材
 │  └─ source/      # 高分辨率透明母版
+├─ ARCHITECTURE.md
+├─ package.json
 ├─ README.md
 └─ DEVELOPMENT_PLAN.md
 ```
 
 项目当前不依赖第三方框架或网络服务，存档保存在浏览器本地。
 
-可运行 `node tests/smoke.js` 检查四架战机选择、脉冲/持续激光/双短束激光/区域轰炸武器、第三和第四关，以及无尽模式的难度阶段、背景轮换、BOSS 循环与休整逻辑。
+可运行 `npm test` 或 `node tests/run-all.js` 检查配置、平衡参数、存档迁移、四架战机、四关流程以及无尽模式。新增战机与关卡的模块约定见 `ARCHITECTURE.md`。
 
 战机与敌机素材为本项目原创生成素材。游戏会在素材未加载完成时自动使用程序化备用图形。
 

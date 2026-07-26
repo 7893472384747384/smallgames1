@@ -50,44 +50,12 @@
           <p id="missionCopy" class="mission-copy">
             天候核心出现异常，积雨云母舰正逼近浮空城。穿越雷区，在风暴成形前将其击落。
           </p>
-          <div class="fighter-selector" role="group" aria-label="选择出击战机">
-            <button
-              id="fighterPulseButton"
-              class="fighter-card selected"
-              type="button"
-              aria-pressed="true"
-            >
-              <img src="assets/ships/player-interceptor-game.png" alt="" />
-              <span><strong>苍隼</strong><small>双联脉冲 · 灵活稳定</small></span>
-            </button>
-            <button
-              id="fighterLaserButton"
-              class="fighter-card"
-              type="button"
-              aria-pressed="false"
-            >
-              <img src="assets/ships/player-laser-game.png" alt="" />
-              <span><strong>曜光</strong><small>聚束激光 · 过热冷却</small></span>
-            </button>
-            <button
-              id="fighterDualButton"
-              class="fighter-card fighter-card-red"
-              type="button"
-              aria-pressed="false"
-            >
-              <img src="assets/ships/player-red-dual-game.png" alt="" />
-              <span><strong>赤霄</strong><small>双短束激光 · 高频点射</small></span>
-            </button>
-            <button
-              id="fighterBomberButton"
-              class="fighter-card fighter-card-purple"
-              type="button"
-              aria-pressed="false"
-            >
-              <img src="assets/ships/player-bomber-purple-game.png" alt="" />
-              <span><strong>紫宸</strong><small>区域轰炸 · 自动寻敌</small></span>
-            </button>
-          </div>
+          <div
+            id="fighterSelector"
+            class="fighter-selector"
+            role="group"
+            aria-label="选择出击战机"
+          ></div>
           <div class="control-hints">
             <div><span class="hint-icon">↔</span><span>拖动或方向键移动</span></div>
             <div><span class="hint-icon">◎</span><span>接近子弹可获得擦弹能量</span></div>
@@ -151,6 +119,22 @@
     </main>
 
     <noscript>本游戏需要启用 JavaScript。</noscript>
-    <script src="src/game.js"></script>
+    <script src="src/core/runtime.js"></script>
+    <script src="src/data/catalog.js"></script>
+    <script src="src/data/balance.js"></script>
+    <script src="src/ui/hangar.js"></script>
+    <script src="src/services/storage.js"></script>
+    <script src="src/services/audio.js"></script>
+    <script src="src/systems/director.js"></script>
+    <script src="src/systems/hazards.js"></script>
+    <script src="src/systems/weapons.js"></script>
+    <script src="src/systems/bosses.js"></script>
+    <script src="src/systems/combat.js"></script>
+    <script src="src/render/backgrounds.js"></script>
+    <script src="src/render/entities.js"></script>
+    <script src="src/render/effects.js"></script>
+    <script src="src/render/hud.js"></script>
+    <script src="src/core/game.js"></script>
+    <script src="src/main.js"></script>
   </body>
 </html>
