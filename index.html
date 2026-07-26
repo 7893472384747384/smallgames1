@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta
+      name="description"
+      content="风云战机——以动态气象战场为核心的原创竖屏弹幕射击游戏。"
+    />
+    <title>风云战机 · 第一章</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="game-shell" aria-label="风云战机游戏">
+      <section class="brand-strip" aria-hidden="true">
+        <span class="brand-mark">FY</span>
+        <span class="brand-copy">
+          <strong>风云战机</strong>
+          <small>PROJECT SKYWARD</small>
+        </span>
+      </section>
+
+      <section class="game-frame" id="gameFrame">
+        <canvas id="gameCanvas" width="450" height="800" aria-label="游戏画面"></canvas>
+
+        <div class="top-controls">
+          <button id="soundButton" class="icon-button" type="button" aria-label="切换声音">声</button>
+          <button id="settingsButton" class="icon-button" type="button" aria-label="打开设置">设</button>
+          <button id="pauseButton" class="icon-button" type="button" aria-label="暂停游戏">Ⅱ</button>
+        </div>
+
+        <div id="debugControls" class="debug-controls" hidden>
+          <button id="debugEndlessButton" type="button">无尽</button>
+          <button id="debugLevelTwoButton" type="button">第二关</button>
+          <button id="debugLevelThreeButton" type="button">第三关</button>
+          <button id="debugLevelFourButton" type="button">第四关</button>
+          <button id="debugBossButton" type="button">跳至 BOSS</button>
+          <button id="debugDamageButton" type="button">削减 BOSS</button>
+          <button id="debugDropButton" type="button">测试掉落</button>
+        </div>
+
+        <button id="burstButton" class="burst-button" type="button" aria-label="释放气象爆发">
+          <span>风云</span>
+          <small>爆发</small>
+        </button>
+
+        <div id="startPanel" class="overlay-panel visible">
+          <div id="levelKicker" class="panel-kicker">第一章 · 01</div>
+          <h1 id="levelTitle">晴空防线</h1>
+          <p id="missionCopy" class="mission-copy">
+            天候核心出现异常，积雨云母舰正逼近浮空城。穿越雷区，在风暴成形前将其击落。
+          </p>
+          <div class="fighter-selector" role="group" aria-label="选择出击战机">
+            <button
+              id="fighterPulseButton"
+              class="fighter-card selected"
+              type="button"
+              aria-pressed="true"
+            >
+              <img src="assets/ships/player-interceptor-game.png" alt="" />
+              <span><strong>苍隼</strong><small>双联脉冲 · 灵活稳定</small></span>
+            </button>
+            <button
+              id="fighterLaserButton"
+              class="fighter-card"
+              type="button"
+              aria-pressed="false"
+            >
+              <img src="assets/ships/player-laser-game.png" alt="" />
+              <span><strong>曜光</strong><small>聚束激光 · 过热冷却</small></span>
+            </button>
+            <button
+              id="fighterDualButton"
+              class="fighter-card fighter-card-red"
+              type="button"
+              aria-pressed="false"
+            >
+              <img src="assets/ships/player-red-dual-game.png" alt="" />
+              <span><strong>赤霄</strong><small>双短束激光 · 高频点射</small></span>
+            </button>
+            <button
+              id="fighterBomberButton"
+              class="fighter-card fighter-card-purple"
+              type="button"
+              aria-pressed="false"
+            >
+              <img src="assets/ships/player-bomber-purple-game.png" alt="" />
+              <span><strong>紫宸</strong><small>区域轰炸 · 自动寻敌</small></span>
+            </button>
+          </div>
+          <div class="control-hints">
+            <div><span class="hint-icon">↔</span><span>拖动或方向键移动</span></div>
+            <div><span class="hint-icon">◎</span><span>接近子弹可获得擦弹能量</span></div>
+            <div><span class="hint-icon">⚡</span><span>能量满后释放气象爆发</span></div>
+          </div>
+          <button id="startButton" class="primary-button" type="button">启动战机</button>
+          <button id="endlessButton" class="endless-button" type="button">
+            <strong>∞ 无尽风暴</strong>
+            <small>持续强化 · 周期 BOSS · 本地纪录</small>
+          </button>
+          <div class="level-shortcuts" aria-label="已解锁关卡">
+            <button id="secondLevelButton" class="secondary-button" type="button" hidden>第二关</button>
+            <button id="thirdLevelButton" class="secondary-button" type="button" hidden>第三关</button>
+            <button id="fourthLevelButton" class="secondary-button" type="button" hidden>第四关</button>
+          </div>
+          <div class="best-line">
+            闯关最高 <strong id="bestScoreLabel">000000</strong>
+            <span>无尽纪录 <strong id="endlessBestLabel">00:00</strong></span>
+          </div>
+        </div>
+
+        <div id="pausePanel" class="overlay-panel compact">
+          <div class="panel-kicker">飞行暂停</div>
+          <h2>等待指令</h2>
+          <button id="resumeButton" class="primary-button" type="button">继续任务</button>
+          <button id="restartFromPauseButton" class="secondary-button" type="button">重新开始</button>
+        </div>
+
+        <div id="settingsPanel" class="overlay-panel compact settings-panel">
+          <div class="panel-kicker">显示与辅助</div>
+          <h2>游戏设置</h2>
+          <label class="setting-row" for="shieldValueToggle">
+            <span>
+              <strong>护盾数值</strong>
+              <small>在护盾条上显示当前值与上限</small>
+            </span>
+            <input id="shieldValueToggle" type="checkbox" />
+            <i aria-hidden="true"></i>
+          </label>
+          <button id="closeSettingsButton" class="primary-button" type="button">保存并返回</button>
+        </div>
+
+        <div id="resultPanel" class="overlay-panel compact">
+          <div id="resultKicker" class="panel-kicker">任务完成</div>
+          <h2 id="resultTitle">风暴已平息</h2>
+          <div class="result-stats">
+            <div><span id="finalScoreLabel">最终得分</span><strong id="finalScore">000000</strong></div>
+            <div><span id="finalComboLabel">最高连击</span><strong id="finalCombo">0</strong></div>
+            <div><span id="finalGrazeLabel">擦弹次数</span><strong id="finalGraze">0</strong></div>
+          </div>
+          <p id="resultMessage" class="result-message"></p>
+          <button id="replayButton" class="primary-button" type="button">再次出击</button>
+          <button id="returnToHangarButton" class="secondary-button" type="button">返回机库</button>
+        </div>
+      </section>
+
+      <footer class="status-strip">
+        <span id="statusLevel">F-01 / 晴空防线</span>
+        <span class="status-online"><i></i> 单机系统正常</span>
+      </footer>
+    </main>
+
+    <noscript>本游戏需要启用 JavaScript。</noscript>
+    <script src="src/game.js"></script>
+  </body>
+</html>
