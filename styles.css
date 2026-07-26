@@ -635,6 +635,73 @@ button {
   line-height: 1.7;
 }
 
+.result-rank {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 10px;
+  border: 2px solid #ffe38b;
+  border-radius: 50%;
+  color: #fff0a8;
+  font: 900 38px/1 Consolas, monospace;
+  text-shadow: 0 0 14px #ffbd5d;
+  box-shadow: 0 0 24px rgba(255, 189, 74, 0.25);
+}
+
+.result-rank[hidden] {
+  display: none;
+}
+
+.upgrade-panel {
+  z-index: 16;
+}
+
+.upgrade-copy {
+  margin: 10px 0 15px;
+  color: #819fac;
+  font-size: 10px;
+}
+
+.upgrade-options {
+  width: min(100%, 330px);
+  display: grid;
+  gap: 8px;
+}
+
+.upgrade-card {
+  min-height: 58px;
+  padding: 10px 13px;
+  border: 1px solid rgba(255, 208, 111, 0.35);
+  background:
+    linear-gradient(110deg, rgba(89, 50, 91, 0.24), rgba(35, 99, 111, 0.16)),
+    rgba(7, 20, 33, 0.9);
+  color: #dff8ff;
+  text-align: left;
+}
+
+.upgrade-card strong,
+.upgrade-card small {
+  display: block;
+}
+
+.upgrade-card strong {
+  color: #ffe19a;
+  font-size: 12px;
+}
+
+.upgrade-card small {
+  margin-top: 5px;
+  color: #8eacb9;
+  font-size: 9px;
+}
+
+.upgrade-card:hover,
+.upgrade-card:focus-visible {
+  border-color: #ffe292;
+  filter: brightness(1.15);
+}
+
 .settings-panel {
   z-index: 14;
   gap: 8px;

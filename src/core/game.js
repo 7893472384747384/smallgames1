@@ -77,6 +77,10 @@
         this.audio.unlock();
         this.activateAmplifier();
       });
+      ui.upgradeButtons.forEach((button, index) => {
+        button.addEventListener("click", () => this.chooseEndlessUpgrade(index));
+      });
+      ui.returnToHangarFromUpgradeButton.addEventListener("click", () => this.returnToHangar());
       if (new URLSearchParams(window.location.search).has("debug")) {
         ui.debugControls.hidden = false;
         ui.debugEndlessButton.addEventListener("click", () => this.startEndless());
@@ -173,6 +177,12 @@
       this.rockfalls = [];
       this.airstrikes = [];
       this.pickupNotice = null;
+      this.runStats = {
+        spawned: 0,
+        defeated: 0,
+        hits: 0,
+        bossPartsDestroyed: 0,
+      };
       this.endless = {
         pressure: 1,
         sector: 1,
@@ -180,6 +190,10 @@
         nextWave: 2.2,
         nextWeather: 14,
         nextBoss: 75,
+        nextUpgrade: 60,
+        upgradeCount: 0,
+        offeredUpgrades: [],
+        upgrades: [],
         restUntil: 0,
       };
       const calmWeather = {
@@ -232,6 +246,12 @@
         bombTimer: 0.55,
         bombInterval: BALANCE.bomber.interval,
         tilt: 0,
+        damageScale: 1,
+        shieldRegenScale: 1,
+        speedScale: 1,
+        grazeEnergyScale: 1,
+        magnetScale: 1,
+        amplifierDurationBonus: 0,
       };
       this.pointerTarget.x = this.player.x;
       this.pointerTarget.y = this.player.y;
@@ -243,6 +263,7 @@
       this.updateLevelUI();
       ui.burstButton.classList.remove("ready");
       ui.amplifierButton.classList.remove("ready", "active");
+      ui.upgradePanel.classList.remove("visible");
     }
 
 
@@ -310,7 +331,9 @@
         return;
       }
       const level = LEVELS[this.level];
-      ui.levelKicker.textContent = level.kicker;
+      ui.levelKicker.textContent = `${level.kicker}${
+        this.save.bestRanks[this.level] ? ` · BEST ${this.save.bestRanks[this.level]}` : ""
+      }`;
       ui.levelTitle.textContent = level.title;
       ui.missionCopy.textContent = level.mission;
       ui.statusLevel.textContent = `${level.code} / ${level.title}`;
@@ -368,6 +391,7 @@
       ui.pausePanel.classList.remove("visible");
       ui.settingsPanel.classList.remove("visible");
       ui.resultPanel.classList.remove("visible");
+      ui.upgradePanel.classList.remove("visible");
     }
 
     updatePersistentUI() {
@@ -386,6 +410,19 @@
       ui.fourthLevelButton.hidden = this.save.unlockedLevel < 4;
       ui.fifthLevelButton.hidden = this.save.unlockedLevel < 5;
       ui.sixthLevelButton.hidden = this.save.unlockedLevel < 6;
+      [
+        ui.secondLevelButton,
+        ui.thirdLevelButton,
+        ui.fourthLevelButton,
+        ui.fifthLevelButton,
+        ui.sixthLevelButton,
+      ].forEach((button, index) => {
+        const level = index + 2;
+        const rank = this.save.bestRanks[level];
+        button.textContent = `第${["二", "三", "四", "五", "六"][index]}关${
+          rank ? ` · ${rank}` : ""
+        }`;
+      });
     }
 
     showBanner(title, subtitle = "", duration = 2.5) {
@@ -415,8 +452,7 @@
       this.enemyBullets.length = 0;
       this.enemies.forEach((enemy) => this.damageEnemy(enemy, 95, false));
       if (this.boss) {
-        this.boss.hp -= 150;
-        this.boss.flash = 0.22;
+        this.damageBoss(150);
       }
       this.score += 500;
       this.screenFlash = 0.5;
@@ -431,7 +467,7 @@
       player.amplifierCharges -= 1;
       player.amplifierTimer = Math.min(
         BALANCE.amplifier.maxDuration,
-        player.amplifierTimer + BALANCE.amplifier.duration,
+        player.amplifierTimer + BALANCE.amplifier.duration + player.amplifierDurationBonus,
       );
       this.pickupNotice = {
         label: `倍增核心启动 · 火力 ×2`,
@@ -529,7 +565,7 @@
       player.overdriveTimer = Math.max(0, player.overdriveTimer - dt);
       player.amplifierTimer = Math.max(0, player.amplifierTimer - dt);
       if (player.sinceHit > 3.8 && player.shield < 100) {
-        player.shield = Math.min(100, player.shield + dt * 8);
+        player.shield = Math.min(100, player.shield + dt * 8 * player.shieldRegenScale);
       }
 
       let dx = 0;
@@ -541,8 +577,8 @@
 
       if (dx || dy) {
         const length = Math.hypot(dx, dy);
-        player.x += (dx / length) * player.speed * dt;
-        player.y += (dy / length) * player.speed * dt;
+        player.x += (dx / length) * player.speed * player.speedScale * dt;
+        player.y += (dy / length) * player.speed * player.speedScale * dt;
         this.pointerTarget.x = player.x;
         this.pointerTarget.y = player.y;
       } else if (this.pointerActive) {
@@ -615,7 +651,7 @@
         const dx = this.player.x - pickup.x;
         const dy = this.player.y - pickup.y;
         const distance = Math.hypot(dx, dy);
-        const magnetRange = pickup.magnetized ? 999 : 105;
+        const magnetRange = pickup.magnetized ? 999 : 105 * this.player.magnetScale;
         if (distance < magnetRange && distance > 1) {
           const pull = pickup.magnetized ? 610 : 330;
           pickup.vx = lerp(pickup.vx, (dx / distance) * pull, 1 - Math.exp(-dt * 7));
@@ -675,6 +711,54 @@
             this.fireFan(enemy.x, enemy.y + 12, 5, 0.16, 112, "#d28aff");
             enemy.fireTimer = enemy.fireRate;
           }
+        } else {
+          enemy.y += enemy.y < 150 ? enemy.speed * dt : Math.sin(enemy.age * 1.7) * 7 * dt;
+          enemy.x = enemy.originX + Math.sin(enemy.age * 1.15 + enemy.phase) * 48;
+          enemy.supportTimer -= dt;
+          if (enemy.type === "guardian") {
+            if (enemy.fireTimer <= 0 && enemy.y > 45) {
+              this.fireFan(enemy.x, enemy.y + 14, 4, 0.18, 122, "#65dcff");
+              enemy.fireTimer = enemy.fireRate;
+            }
+          } else if (enemy.type === "medic") {
+            if (enemy.supportTimer <= 0) {
+              const target = this.enemies
+                .filter((ally) => ally !== enemy && ally.hp > 0 && ally.hp < ally.maxHp)
+                .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+              if (target && distanceSquared(enemy, target) < 175 * 175) {
+                target.hp = Math.min(target.maxHp, target.hp + 24);
+                for (let i = 1; i <= 7; i += 1) {
+                  const amount = i / 8;
+                  this.spawnSpark(
+                    lerp(enemy.x, target.x, amount),
+                    lerp(enemy.y, target.y, amount),
+                    "#78f0a5",
+                    0.35,
+                  );
+                }
+              }
+              enemy.supportTimer = 2.2;
+            }
+            if (enemy.fireTimer <= 0 && enemy.y > 45) {
+              this.fireAimed(enemy.x, enemy.y + 10, 132, "#72f0aa");
+              enemy.fireTimer = enemy.fireRate;
+            }
+          } else if (enemy.type === "minelayer") {
+            if (enemy.fireTimer <= 0 && enemy.y > 55) {
+              this.fireRadial(enemy.x, enemy.y + 12, 8, 58, "#ff9a68", enemy.age * 0.2);
+              enemy.fireTimer = enemy.fireRate;
+            }
+          } else if (enemy.type === "carrier") {
+            if (enemy.supportTimer <= 0 && this.enemies.length < 22) {
+              this.spawnEnemy("scout", enemy.x - 24, enemy.y + 16, { phase: enemy.age });
+              this.spawnEnemy("scout", enemy.x + 24, enemy.y + 16, { phase: enemy.age + 1 });
+              enemy.supportTimer = 4.4;
+            }
+            if (enemy.fireTimer <= 0 && enemy.y > 50) {
+              this.fireFan(enemy.x, enemy.y + 18, 5, 0.15, 118, "#ffc46e");
+              enemy.fireTimer = enemy.fireRate;
+            }
+          }
         }
       }
 
@@ -709,6 +793,7 @@
     finish(victory) {
       if (this.state !== "playing") return;
       if (this.mode === "endless") {
+        ui.resultRank.hidden = true;
         this.state = "gameover";
         this.save.bestEndlessScore = Math.max(
           this.save.bestEndlessScore,
@@ -736,6 +821,7 @@
         return;
       }
       this.state = victory ? "victory" : "gameover";
+      const rating = victory ? this.calculateCampaignRating() : null;
       if (victory) {
         this.save.unlockedLevel = Math.max(
           this.save.unlockedLevel,
@@ -745,9 +831,18 @@
       if (this.score > this.save.bestScore) {
         this.save.bestScore = Math.floor(this.score);
       }
+      if (rating) {
+        const rankValues = { C: 1, B: 2, A: 3, S: 4 };
+        const previous = this.save.bestRanks[this.level] || "";
+        if ((rankValues[rating.rank] || 0) > (rankValues[previous] || 0)) {
+          this.save.bestRanks[this.level] = rating.rank;
+        }
+      }
       saveData(this.save);
       this.updatePersistentUI();
       ui.resultKicker.textContent = victory ? "任务完成" : "任务中断";
+      ui.resultRank.hidden = !rating;
+      if (rating) ui.resultRank.textContent = rating.rank;
       ui.resultTitle.textContent = victory ? LEVELS[this.level].clearTitle : "战机失去响应";
       ui.finalScoreLabel.textContent = "最终得分";
       ui.finalComboLabel.textContent = "最高连击";
@@ -772,7 +867,7 @@
         6: "落石标记锁定后不再追踪，持续移动即可避开冲击区。",
       };
       ui.resultMessage.textContent = victory
-        ? victoryMessages[this.level]
+        ? `${victoryMessages[this.level]} ${rating.summary}`
         : failureMessages[this.level];
       ui.replayButton.textContent = victory
         ? this.level < MAX_LEVEL
@@ -781,6 +876,25 @@
         : "重新挑战本关";
       setTimeout(() => ui.resultPanel.classList.add("visible"), victory ? 900 : 350);
       if (victory) this.audio.victory();
+    }
+
+    calculateCampaignRating() {
+      const destruction =
+        this.runStats.spawned > 0 ? this.runStats.defeated / this.runStats.spawned : 1;
+      const objectives = [
+        { label: "击破率80%", passed: destruction >= 0.8 },
+        { label: "机体无受击", passed: this.runStats.hits === 0 },
+        { label: "部件全破坏", passed: this.runStats.bossPartsDestroyed >= 2 },
+      ];
+      const passed = objectives.filter((objective) => objective.passed).length;
+      return {
+        rank: ["C", "B", "A", "S"][passed],
+        destruction,
+        objectives,
+        summary: objectives
+          .map((objective) => `${objective.passed ? "✓" : "○"}${objective.label}`)
+          .join(" · "),
+      };
     }
 
     render() {
@@ -880,7 +994,12 @@
           amplifierCharges: this.player.amplifierCharges,
           amplifierTimer: Number(this.player.amplifierTimer.toFixed(1)),
         },
+        runStats: { ...this.runStats },
         enemies: this.enemies.length,
+        enemyTypes: this.enemies.reduce((counts, enemy) => {
+          counts[enemy.type] = (counts[enemy.type] || 0) + 1;
+          return counts;
+        }, {}),
         playerBullets: this.playerBullets.length,
         enemyBullets: this.enemyBullets.length,
         pickups: this.pickups.length,
@@ -897,6 +1016,12 @@
               kind: this.boss.kind,
               phase: this.boss.phase,
               entered: this.boss.entered,
+              parts: (this.boss.parts || []).map((part) => ({
+                id: part.id,
+                hp: Math.max(0, Math.round(part.hp)),
+                maxHp: part.maxHp,
+                destroyed: part.destroyed,
+              })),
             }
           : null,
         weather: this.weather.type,
@@ -913,6 +1038,9 @@
                 nextBossIn: Number.isFinite(this.endless.nextBoss)
                   ? Number(Math.max(0, this.endless.nextBoss - this.time).toFixed(1))
                   : null,
+                nextUpgradeIn: Math.max(0, this.endless.nextUpgrade - this.time),
+                upgradeCount: this.endless.upgradeCount,
+                upgrades: [...this.endless.upgrades],
               }
             : null,
       };

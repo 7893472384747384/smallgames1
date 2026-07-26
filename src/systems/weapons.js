@@ -9,7 +9,9 @@
       const boosted = this.player.burstTimer > 0 || this.player.overdriveTimer > 0;
       const amplified = this.player.amplifierTimer > 0;
       const offsets = amplified ? [-22, -7, 7, 22] : [-7, 7];
-      const damage = boosted ? BALANCE.pulse.boostedDamage : BALANCE.pulse.damage;
+      const damage =
+        (boosted ? BALANCE.pulse.boostedDamage : BALANCE.pulse.damage) *
+        this.player.damageScale;
       for (const offset of offsets) {
         this.playerBullets.push({
           x: this.player.x + offset,
@@ -50,7 +52,9 @@
       const beamXs = player.amplifierTimer > 0 ? [player.x - 10, player.x + 10] : [player.x];
       const boosted = player.burstTimer > 0 || player.overdriveTimer > 0;
       const damage =
-        (boosted ? BALANCE.laser.boostedDamagePerSecond : BALANCE.laser.damagePerSecond) * dt;
+        (boosted ? BALANCE.laser.boostedDamagePerSecond : BALANCE.laser.damagePerSecond) *
+        player.damageScale *
+        dt;
       player.laserBeams = beamXs.map((beamX) => {
         const target = this.findLaserTarget(beamX);
         const endY = target ? target.y + target.radius * 0.72 : 0;
@@ -94,14 +98,29 @@
       ) {
         target = this.boss;
       }
+      if (this.boss?.entered) {
+        for (const part of this.boss.parts || []) {
+          if (part.destroyed) continue;
+          const position = this.getBossPartPosition(part);
+          if (
+            position.y < this.player.y &&
+            position.y > nearestY &&
+            Math.abs(position.x - beamX) <= part.radius + 5
+          ) {
+            target = { ...position, radius: part.radius, bossPart: part };
+            nearestY = position.y;
+          }
+        }
+      }
       return target;
     },
 
     damageLaserTarget(target, damage) {
       if (!target) return;
-      if (target === this.boss) {
-        target.hp -= damage;
-        target.flash = 0.055;
+      if (target.bossPart) {
+        this.damageBossPart(target.bossPart, damage);
+      } else if (target === this.boss) {
+        this.damageBoss(damage);
       } else {
         this.damageEnemy(target, damage, false);
       }
@@ -116,7 +135,8 @@
       player.dualLaserActive = player.dualLaserCooldown > 0;
       if (player.dualLaserFireTimer > 0) return;
 
-      const damage = boosted ? BALANCE.dual.boostedDamage : BALANCE.dual.damage;
+      const damage =
+        (boosted ? BALANCE.dual.boostedDamage : BALANCE.dual.damage) * player.damageScale;
       const speed = -(boosted ? BALANCE.dual.boostedSpeed : BALANCE.dual.speed);
       const offsets = player.amplifierTimer > 0 ? [-27, -9, 9, 27] : [-11, 11];
       for (const offset of offsets) {
@@ -157,7 +177,9 @@
           x: target.x,
           y: target.y,
           radius: boosted ? BALANCE.bomber.boostedRadius : BALANCE.bomber.radius,
-          damage: boosted ? BALANCE.bomber.boostedDamage : BALANCE.bomber.damage,
+          damage:
+            (boosted ? BALANCE.bomber.boostedDamage : BALANCE.bomber.damage) *
+            player.damageScale,
           timer: 0,
           strikeAt: BALANCE.bomber.lockDelay,
           duration: 0.72,
@@ -223,11 +245,21 @@
         this.damageEnemy(enemy, strike.damage * falloff, false);
       }
       if (this.boss?.entered && this.boss.hp > 0) {
+        for (const part of this.boss.parts || []) {
+          if (part.destroyed) continue;
+          const position = this.getBossPartPosition(part);
+          const reach = strike.radius + part.radius * 0.35;
+          const distance = Math.sqrt(distanceSquared(strike, position));
+          if (distance <= reach) {
+            const falloff = lerp(1, 0.72, clamp(distance / reach, 0, 1));
+            this.damageBossPart(part, strike.damage * falloff);
+          }
+        }
         const reach = strike.radius + this.boss.radius * 0.3;
         const distance = Math.sqrt(distanceSquared(strike, this.boss));
         if (distance <= reach) {
           const falloff = lerp(1, 0.7, clamp(distance / reach, 0, 1));
-          this.boss.hp -= strike.damage * falloff;
+          this.damageBoss(strike.damage * falloff);
           this.boss.flash = 0.13;
         }
       }

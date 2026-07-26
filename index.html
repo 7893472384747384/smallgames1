@@ -121,6 +121,7 @@
 
         <div id="resultPanel" class="overlay-panel compact">
           <div id="resultKicker" class="panel-kicker">任务完成</div>
+          <div id="resultRank" class="result-rank" hidden>S</div>
           <h2 id="resultTitle">风暴已平息</h2>
           <div class="result-stats">
             <div><span id="finalScoreLabel">最终得分</span><strong id="finalScore">000000</strong></div>
@@ -130,6 +131,24 @@
           <p id="resultMessage" class="result-message"></p>
           <button id="replayButton" class="primary-button" type="button">再次出击</button>
           <button id="returnToHangarButton" class="secondary-button" type="button">返回机库</button>
+        </div>
+
+        <div id="upgradePanel" class="overlay-panel compact upgrade-panel">
+          <div class="panel-kicker">无尽强化</div>
+          <h2>选择一项战场改造</h2>
+          <p class="upgrade-copy">每60秒获得一次选择，本局有效。</p>
+          <div class="upgrade-options">
+            <button id="upgradeButton0" class="upgrade-card" type="button"></button>
+            <button id="upgradeButton1" class="upgrade-card" type="button"></button>
+            <button id="upgradeButton2" class="upgrade-card" type="button"></button>
+          </div>
+          <button
+            id="returnToHangarFromUpgradeButton"
+            class="secondary-button exit-button"
+            type="button"
+          >
+            返回机库
+          </button>
         </div>
       </section>
 

@@ -322,6 +322,11 @@
         );
       }
 
+      if (this.time >= this.endless.nextUpgrade && !this.boss) {
+        this.offerEndlessUpgrade();
+        return;
+      }
+
       if (!this.boss && this.time >= this.endless.nextBoss) {
         this.spawnEndlessBoss();
         return;
@@ -337,6 +342,49 @@
         const interval = Math.max(1.65, 4.4 - this.time * 0.006);
         this.endless.nextWave = this.time + interval;
       }
+    },
+
+    offerEndlessUpgrade() {
+      if (this.state !== "playing" || this.mode !== "endless") return;
+      const catalog = [
+        { id: "damage", name: "高能弹舱", copy: "所有武器伤害 +20%" },
+        { id: "shield", name: "自愈装甲", copy: "护盾自动恢复速度 +35%" },
+        { id: "speed", name: "矢量推进", copy: "战机移动速度 +12%" },
+        { id: "graze", name: "近弹感应", copy: "擦弹获得的气象能量 +40%" },
+        { id: "magnet", name: "广域牵引", copy: "道具吸附范围 +40%" },
+        { id: "amplifier", name: "核心增容", copy: "倍增核心单次持续时间 +2秒" },
+      ];
+      const start = (this.endless.upgradeCount * 2) % catalog.length;
+      this.endless.offeredUpgrades = [0, 1, 2].map(
+        (offset) => catalog[(start + offset) % catalog.length],
+      );
+      ui.upgradeButtons.forEach((button, index) => {
+        const upgrade = this.endless.offeredUpgrades[index];
+        button.innerHTML = `<strong>${upgrade.name}</strong><small>${upgrade.copy}</small>`;
+      });
+      this.state = "upgrade";
+      ui.upgradePanel.classList.add("visible");
+    },
+
+    chooseEndlessUpgrade(index) {
+      if (this.state !== "upgrade" || this.mode !== "endless") return false;
+      const upgrade = this.endless.offeredUpgrades[index];
+      if (!upgrade) return false;
+      if (upgrade.id === "damage") this.player.damageScale *= 1.2;
+      else if (upgrade.id === "shield") this.player.shieldRegenScale *= 1.35;
+      else if (upgrade.id === "speed") this.player.speedScale *= 1.12;
+      else if (upgrade.id === "graze") this.player.grazeEnergyScale *= 1.4;
+      else if (upgrade.id === "magnet") this.player.magnetScale *= 1.4;
+      else if (upgrade.id === "amplifier") this.player.amplifierDurationBonus += 2;
+      this.endless.upgrades.push(upgrade.id);
+      this.endless.upgradeCount += 1;
+      this.endless.nextUpgrade += 60;
+      this.endless.offeredUpgrades = [];
+      ui.upgradePanel.classList.remove("visible");
+      this.state = "playing";
+      this.lastFrame = performance.now();
+      this.showBanner("改造完成", upgrade.name, 2);
+      return true;
     },
 
     getEndlessDifficulty() {
@@ -365,7 +413,7 @@
 
     spawnEndlessWave() {
       const pressure = this.endless.pressure;
-      const pattern = (Math.floor(this.time / 4) + pressure) % 5;
+      const pattern = (Math.floor(this.time / 4) + pressure) % 7;
       if (pattern === 0) {
         this.spawnScoutV(Math.min(12, 5 + pressure));
       } else if (pattern === 1) {
@@ -374,8 +422,13 @@
         this.spawnChargers(Math.min(6, 1 + Math.ceil(pressure / 3)));
       } else if (pattern === 3) {
         this.spawnScoutColumns(pressure >= 3);
-      } else {
+      } else if (pattern === 4) {
         this.spawnMixedWave();
+      } else if (pattern === 5) {
+        this.spawnEnemy(pressure >= 5 ? "medic" : "guardian", random(70, WIDTH - 70), -55);
+        this.spawnScoutV(Math.min(8, 3 + pressure));
+      } else {
+        this.spawnEnemy(pressure >= 7 ? "carrier" : "minelayer", random(70, WIDTH - 70), -60);
       }
 
       if (pressure >= 6 && pattern % 2 === 0 && this.enemies.length < 20) {
@@ -420,12 +473,18 @@
         mirage: ["mirageBoss", "蜃影云场"],
         gale: ["galeBoss", "风塔共振"],
         volt: ["voltBoss", "裁决电网"],
+        tide: ["tideBoss", "玄潮共振"],
+        ridge: ["ridgeBoss", "山河封锁"],
       }[kind];
       this.setWeather(weather[0], 999, weather[1]);
       this.spawnBoss(kind);
       const hpScale = 1 + Math.min(2.5, this.time / 300);
       this.boss.hp = Math.round(this.boss.hp * hpScale);
       this.boss.maxHp = this.boss.hp;
+      this.boss.parts.forEach((part) => {
+        part.hp = Math.round(part.hp * hpScale);
+        part.maxHp = part.hp;
+      });
       this.endless.nextBoss = Number.POSITIVE_INFINITY;
       const bossName = {
         yubo: "雨伯",
@@ -484,6 +543,12 @@
       for (let i = 0; i < 4; i += 1) {
         this.spawnEnemy("scout", 60 + i * 110, -180 - i * 35, { phase: i });
       }
+      if (this.level >= 2 && this.mode !== "endless") {
+        const specialist = ["guardian", "medic", "minelayer", "carrier"][
+          Math.min(3, this.level - 2)
+        ];
+        this.spawnEnemy(specialist, WIDTH / 2, -235, { phase: this.level });
+      }
     },
 
     spawnEnemy(type, x, y, options = {}) {
@@ -491,6 +556,10 @@
         scout: { radius: 15, hp: 32, speed: 72, score: 120, fireRate: 1.8 },
         sweeper: { radius: 20, hp: 70, speed: 52, score: 250, fireRate: 2.15 },
         charger: { radius: 18, hp: 92, speed: 46, score: 340, fireRate: 3.1 },
+        guardian: { radius: 22, hp: 125, speed: 38, score: 440, fireRate: 2.8 },
+        medic: { radius: 19, hp: 88, speed: 42, score: 410, fireRate: 3.2 },
+        minelayer: { radius: 21, hp: 108, speed: 40, score: 460, fireRate: 2.4 },
+        carrier: { radius: 25, hp: 165, speed: 32, score: 560, fireRate: 4.2 },
       }[type];
       const difficulty =
         this.mode === "endless"
@@ -516,7 +585,9 @@
         state: "enter",
         stateTimer: 0,
         flash: 0,
+        supportTimer: random(1.2, 2.4),
       });
+      this.runStats.spawned += 1;
     },
 
     spawnBoss(
@@ -584,6 +655,30 @@
         summonTimer: stats.summonTimer,
         flash: 0,
         phase: 1,
+        parts: [
+          {
+            id: "left",
+            label: "左武装",
+            xOffset: -stats.radius * 0.68,
+            yOffset: 8,
+            radius: 15,
+            hp: Math.round(stats.hp * 0.085),
+            maxHp: Math.round(stats.hp * 0.085),
+            destroyed: false,
+            flash: 0,
+          },
+          {
+            id: "right",
+            label: "右武装",
+            xOffset: stats.radius * 0.68,
+            yOffset: 8,
+            radius: 15,
+            hp: Math.round(stats.hp * 0.085),
+            maxHp: Math.round(stats.hp * 0.085),
+            destroyed: false,
+            flash: 0,
+          },
+        ],
       };
       this.showBanner(stats.intro, stats.name, 3.4);
     },

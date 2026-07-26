@@ -18,6 +18,10 @@ const game = new FY.Game();
       game.pause();
       return game.getSnapshot();
     },
+    chooseEndlessUpgrade: (index = 0) => {
+      game.chooseEndlessUpgrade(index);
+      return game.getSnapshot();
+    },
     advanceEndless: (seconds = 0) => game.debugAdvanceEndless(seconds),
     advanceWorld: (seconds = 0) => game.debugAdvanceWorld(seconds),
     endEndless: () => {
@@ -57,5 +61,18 @@ const game = new FY.Game();
     damageBoss: (amount = 500) => {
       if (game.boss) game.boss.hp -= Math.max(0, Number(amount) || 0);
     },
+    damageBossPart: (id = "left", amount = 9999) => {
+      const part = game.boss?.parts?.find((candidate) => candidate.id === id);
+      if (part) game.damageBossPart(part, Math.max(0, Number(amount) || 0));
+      return game.getSnapshot();
+    },
+    spawnFunctionalEnemies: () => {
+      game.enemies.length = 0;
+      ["guardian", "medic", "minelayer", "carrier"].forEach((type, index) => {
+        game.spawnEnemy(type, 90 + index * 90, 120, { phase: index });
+      });
+      return game.getSnapshot();
+    },
+    getCampaignRating: () => game.calculateCampaignRating(),
   };
 })();

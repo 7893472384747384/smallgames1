@@ -127,8 +127,16 @@ assert.equal(window.__FENGYUN_GAME__.snapshot().fighter.laserBeamCount, 2);
 window.__FENGYUN_GAME__.start(1);
 window.__FENGYUN_GAME__.skipToBoss();
 const bossHpBeforeLaser = window.__FENGYUN_GAME__.snapshot().boss.hp;
+const bossPartHpBeforeLaser = window.__FENGYUN_GAME__.snapshot().boss.parts.reduce(
+  (sum, part) => sum + part.hp,
+  0,
+);
 window.__FENGYUN_GAME__.advanceWorld(3.5);
-assert.ok(window.__FENGYUN_GAME__.snapshot().boss.hp < bossHpBeforeLaser);
+assert.ok(
+  window.__FENGYUN_GAME__.snapshot().boss.hp < bossHpBeforeLaser ||
+    window.__FENGYUN_GAME__.snapshot().boss.parts.reduce((sum, part) => sum + part.hp, 0) <
+      bossPartHpBeforeLaser,
+);
 
 window.__FENGYUN_GAME__.startLevelThree();
 frameCallback(performance.now() + 16);
@@ -189,6 +197,23 @@ assert.deepEqual(
 );
 window.__FENGYUN_GAME__.advanceWorld(1.35);
 assert.ok(window.__FENGYUN_GAME__.snapshot().hazards.rockfalls > 0);
+window.__FENGYUN_GAME__.damageBossPart("left");
+window.__FENGYUN_GAME__.damageBossPart("right");
+assert.equal(
+  window.__FENGYUN_GAME__.snapshot().boss.parts.filter((part) => part.destroyed).length,
+  2,
+);
+assert.equal(window.__FENGYUN_GAME__.snapshot().runStats.bossPartsDestroyed, 2);
+assert.equal(window.__FENGYUN_GAME__.getCampaignRating().rank, "S");
+window.__FENGYUN_GAME__.spawnFunctionalEnemies();
+assert.deepEqual(window.__FENGYUN_GAME__.snapshot().enemyTypes, {
+  guardian: 1,
+  medic: 1,
+  minelayer: 1,
+  carrier: 1,
+});
+window.__FENGYUN_GAME__.advanceWorld(4.5);
+assert.ok(window.__FENGYUN_GAME__.snapshot().enemyTypes.scout >= 2);
 
 window.__FENGYUN_GAME__.startEndless();
 assert.deepEqual(
@@ -205,6 +230,11 @@ window.__FENGYUN_GAME__.advanceEndless(62);
 assert.equal(window.__FENGYUN_GAME__.snapshot().endless.pressure, 3);
 assert.equal(window.__FENGYUN_GAME__.snapshot().endless.sector, 2);
 assert.equal(window.__FENGYUN_GAME__.snapshot().environment, "cloudSea");
+assert.equal(window.__FENGYUN_GAME__.snapshot().state, "upgrade");
+window.__FENGYUN_GAME__.chooseEndlessUpgrade(0);
+assert.equal(window.__FENGYUN_GAME__.snapshot().state, "playing");
+assert.equal(window.__FENGYUN_GAME__.snapshot().endless.upgradeCount, 1);
+assert.equal(window.__FENGYUN_GAME__.snapshot().endless.upgrades[0], "damage");
 
 window.__FENGYUN_GAME__.skipToBoss();
 assert.equal(window.__FENGYUN_GAME__.snapshot().boss.kind, "yubo");
@@ -216,7 +246,7 @@ assert.equal(window.__FENGYUN_GAME__.snapshot().endless.bossesDefeated, 1);
 assert.ok(window.__FENGYUN_GAME__.snapshot().endless.nextBossIn >= 70);
 window.__FENGYUN_GAME__.endEndless();
 assert.equal(window.__FENGYUN_GAME__.snapshot().state, "gameover");
-assert.ok(JSON.parse(storedSave).bestEndlessTime >= 65);
+assert.ok(JSON.parse(storedSave).bestEndlessTime >= 63);
 assert.ok(JSON.parse(storedSave).bestEndlessScore > 0);
 window.__FENGYUN_GAME__.startEndless();
 window.__FENGYUN_GAME__.pause();

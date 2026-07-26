@@ -104,11 +104,21 @@
           continue;
         }
         if (this.boss?.entered) {
+          const part = this.boss.parts?.find((candidate) => {
+            if (candidate.destroyed) return false;
+            const position = this.getBossPartPosition(candidate);
+            const combined = bullet.radius + candidate.radius;
+            return distanceSquared(bullet, position) < combined * combined;
+          });
+          if (part) {
+            bullet.life = 0;
+            this.damageBossPart(part, bullet.damage);
+            continue;
+          }
           const combined = bullet.radius + this.boss.radius;
           if (distanceSquared(bullet, this.boss) < combined * combined) {
             bullet.life = 0;
-            this.boss.hp -= bullet.damage;
-            this.boss.flash = 0.055;
+            this.damageBoss(bullet.damage);
             if (Math.random() < 0.3) this.spawnSpark(bullet.x, bullet.y, "#91efff", 0.45);
           }
         }
@@ -123,7 +133,10 @@
         } else if (!bullet.grazed && distSq < (combined + 18) * (combined + 18)) {
           bullet.grazed = true;
           this.grazeCount += 1;
-          this.player.energy = Math.min(100, this.player.energy + 2.8);
+          this.player.energy = Math.min(
+            100,
+            this.player.energy + 2.8 * this.player.grazeEnergyScale,
+          );
           this.score += 24;
           this.combo = Math.min(99, this.combo + 1);
           this.maxCombo = Math.max(this.maxCombo, Math.floor(this.combo));
@@ -152,7 +165,15 @@
 
     damageEnemy(enemy, amount, environmental) {
       if (enemy.hp <= 0) return;
-      enemy.hp -= amount;
+      const protectedByGuardian =
+        enemy.type !== "guardian" &&
+        this.enemies.some(
+          (guardian) =>
+            guardian.type === "guardian" &&
+            guardian.hp > 0 &&
+            distanceSquared(enemy, guardian) < 125 * 125,
+        );
+      enemy.hp -= amount * (protectedByGuardian ? 0.55 : 1);
       enemy.flash = 0.08;
       if (enemy.hp <= 0) {
         this.explodeEnemy(enemy, environmental);
@@ -161,9 +182,46 @@
       }
     },
 
+    getBossPartPosition(part) {
+      return {
+        x: this.boss.x + part.xOffset,
+        y: this.boss.y + part.yOffset,
+      };
+    },
+
+    damageBoss(amount) {
+      if (!this.boss || this.boss.hp <= 0) return;
+      const armored = this.boss.parts?.some((part) => !part.destroyed);
+      this.boss.hp -= amount * (armored ? 0.82 : 1);
+      this.boss.flash = 0.055;
+    },
+
+    damageBossPart(part, amount) {
+      if (!this.boss || !part || part.destroyed) return;
+      part.hp -= amount;
+      part.flash = 0.1;
+      const position = this.getBossPartPosition(part);
+      if (part.hp > 0) {
+        if (Math.random() < 0.4) this.spawnSpark(position.x, position.y, "#ffd27a", 0.5);
+        return;
+      }
+      part.destroyed = true;
+      part.hp = 0;
+      this.runStats.bossPartsDestroyed += 1;
+      this.score += 900;
+      this.boss.hp -= this.boss.maxHp * 0.04;
+      this.shake = Math.max(this.shake, 9);
+      this.showBanner(`${part.label}已破坏`, "BOSS攻击与召唤频率下降", 1.8);
+      for (let i = 0; i < 28; i += 1) {
+        this.spawnSpark(position.x, position.y, i % 2 ? "#ffb25f" : "#9defff", 1);
+      }
+      this.audio.explosion(1.2);
+    },
+
     explodeEnemy(enemy, environmental) {
       if (enemy.exploded) return;
       enemy.exploded = true;
+      this.runStats.defeated += 1;
       const multiplier = 1 + Math.floor(this.combo / 12) * 0.2;
       this.score += Math.round(enemy.score * multiplier);
       this.combo = Math.min(99, this.combo + (enemy.type === "charger" ? 3 : 2));
@@ -214,6 +272,10 @@
         scout: 0.08,
         sweeper: 0.18,
         charger: 0.38,
+        guardian: 0.42,
+        medic: 0.4,
+        minelayer: 0.44,
+        carrier: 0.52,
       }[enemy.type] || 0;
       if (Math.random() >= chance) return;
       const roll = Math.random();
@@ -291,6 +353,7 @@
     hurtPlayer() {
       if (this.player.invincible > 0 || this.state !== "playing") return;
       this.player.sinceHit = 0;
+      this.runStats.hits += 1;
       this.player.invincible = 1.35;
       this.combo = 0;
       this.comboTimer = 0;

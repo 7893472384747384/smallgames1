@@ -3,7 +3,7 @@
 
   const FY = window.FY;
   const { STORAGE_KEY, FIGHTERS, LEVELS, clamp } = FY;
-  const SAVE_SCHEMA_VERSION = 2;
+  const SAVE_SCHEMA_VERSION = 3;
 
   function loadSave() {
     try {
@@ -13,6 +13,8 @@
         bestScore: Number.isFinite(data.bestScore) ? data.bestScore : 0,
         bestEndlessScore: Number.isFinite(data.bestEndlessScore) ? data.bestEndlessScore : 0,
         bestEndlessTime: Number.isFinite(data.bestEndlessTime) ? data.bestEndlessTime : 0,
+        bestRanks:
+          data.bestRanks && typeof data.bestRanks === "object" ? { ...data.bestRanks } : {},
         selectedFighter: FIGHTERS[data.selectedFighter] ? data.selectedFighter : "pulse",
         sound: data.sound !== false,
         showShieldValue: data.showShieldValue !== false,
@@ -28,6 +30,7 @@
         bestScore: 0,
         bestEndlessScore: 0,
         bestEndlessTime: 0,
+        bestRanks: {},
         selectedFighter: "pulse",
         sound: true,
         showShieldValue: true,

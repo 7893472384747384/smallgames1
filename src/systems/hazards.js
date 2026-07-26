@@ -221,8 +221,7 @@
             if (hit(enemy)) this.damageEnemy(enemy, 62, true);
           });
           if (this.boss && hit(this.boss)) {
-            this.boss.hp -= 38;
-            this.boss.flash = 0.16;
+            this.damageBoss(38);
           }
           this.screenFlash = Math.max(this.screenFlash, 0.13);
           this.shake = Math.max(this.shake, 7);
@@ -260,8 +259,7 @@
             if (hit(enemy)) this.damageEnemy(enemy, 68, true);
           });
           if (this.boss && hit(this.boss)) {
-            this.boss.hp -= 42;
-            this.boss.flash = 0.16;
+            this.damageBoss(42);
           }
           this.screenFlash = Math.max(this.screenFlash, 0.15);
           this.shake = Math.max(this.shake, 9);
@@ -349,8 +347,7 @@
                 ? Math.abs(this.boss.x - hazard.position) < hazard.width / 2 + this.boss.radius
                 : Math.abs(this.boss.y - hazard.position) < hazard.width / 2 + this.boss.radius;
             if (hitBoss) {
-              this.boss.hp -= 34;
-              this.boss.flash = 0.16;
+              this.damageBoss(34);
             }
           }
           this.audio.lightning();
@@ -427,8 +424,7 @@
             }
           }
           if (this.boss && Math.abs(this.boss.x - zone.x) < halfWidth + this.boss.radius) {
-            this.boss.hp -= 35;
-            this.boss.flash = 0.15;
+            this.damageBoss(35);
           }
           for (let i = 0; i < 22; i += 1) {
             this.spawnSpark(zone.x + random(-halfWidth, halfWidth), random(50, HEIGHT - 30), "#e9fdff", 1.2);

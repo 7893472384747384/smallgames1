@@ -10,6 +10,9 @@
       if (!boss) return;
       boss.age += dt;
       boss.flash = Math.max(0, boss.flash - dt);
+      boss.parts?.forEach((part) => {
+        part.flash = Math.max(0, part.flash - dt);
+      });
 
       if (!boss.entered) {
         boss.y = lerp(boss.y, 142, 1 - Math.exp(-dt * 1.7));
@@ -31,6 +34,9 @@
         }
         return;
       }
+      const destroyedParts = boss.parts?.filter((part) => part.destroyed).length || 0;
+      boss.fireTimer += dt * destroyedParts * 0.08;
+      boss.summonTimer += dt * destroyedParts * 0.05;
 
       if (boss.kind === "mirage") {
         this.updateMirageBoss(dt);

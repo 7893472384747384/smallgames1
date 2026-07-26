@@ -202,9 +202,65 @@
         }
         if (enemy.type === "scout") this.drawScout(enemy);
         else if (enemy.type === "sweeper") this.drawSweeper(enemy);
-        else this.drawCharger(enemy);
+        else if (enemy.type === "charger") this.drawCharger(enemy);
+        else this.drawFunctionalEnemy(enemy);
         ctx.restore();
       }
+    },
+
+    drawFunctionalEnemy(enemy) {
+      ctx.save();
+      const palette = {
+        guardian: "#69e8ff",
+        medic: "#72f0a4",
+        minelayer: "#ff9a68",
+        carrier: "#ffc56d",
+      }[enemy.type];
+      ctx.globalAlpha = 0.88;
+      if (enemy.type === "medic") {
+        ctx.scale(0.95, 0.95);
+        this.drawScout(enemy);
+      } else {
+        ctx.scale(enemy.type === "carrier" ? 1.12 : 0.94, enemy.type === "carrier" ? 1.12 : 0.94);
+        this.drawSweeper(enemy);
+      }
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.strokeStyle = palette;
+      ctx.fillStyle = palette;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = palette;
+      ctx.lineWidth = 1.7;
+      if (enemy.type === "guardian") {
+        ctx.globalAlpha = 0.55 + Math.sin(enemy.age * 5) * 0.12;
+        ctx.beginPath();
+        ctx.arc(0, 0, 29, 0, TAU);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, 23, -0.8, 0.8);
+        ctx.stroke();
+      } else if (enemy.type === "medic") {
+        ctx.fillRect(-2, -10, 4, 20);
+        ctx.fillRect(-10, -2, 20, 4);
+      } else if (enemy.type === "minelayer") {
+        for (let i = 0; i < 6; i += 1) {
+          ctx.rotate(TAU / 6);
+          ctx.beginPath();
+          ctx.moveTo(14, 0);
+          ctx.lineTo(25, 0);
+          ctx.stroke();
+        }
+      } else {
+        ctx.strokeRect(-16, -7, 32, 14);
+        ctx.beginPath();
+        ctx.moveTo(-10, 0);
+        ctx.lineTo(10, 0);
+        ctx.stroke();
+      }
+      ctx.restore();
+      this.drawMiniHealth(enemy);
     },
 
     drawScout(enemy) {
@@ -447,6 +503,38 @@
         ctx.lineTo(-25, -34);
         ctx.closePath();
         ctx.fill();
+      }
+
+      for (const part of boss.parts || []) {
+        ctx.save();
+        ctx.translate(part.xOffset, part.yOffset);
+        if (part.destroyed) {
+          ctx.globalAlpha = 0.5;
+          ctx.strokeStyle = "#ff8b62";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-7, -7);
+          ctx.lineTo(7, 7);
+          ctx.moveTo(7, -7);
+          ctx.lineTo(-7, 7);
+          ctx.stroke();
+        } else {
+          const ratio = clamp(part.hp / part.maxHp, 0, 1);
+          ctx.shadowBlur = part.flash > 0 ? 18 : 10;
+          ctx.shadowColor = part.flash > 0 ? "#fff" : glow;
+          ctx.fillStyle = part.flash > 0 ? "#fff" : "rgba(9, 28, 43, 0.92)";
+          ctx.strokeStyle = glow;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, part.radius, 0, TAU);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = glow;
+          ctx.fillRect(-12, part.radius + 5, 24 * ratio, 3);
+          ctx.strokeStyle = "rgba(255,255,255,0.35)";
+          ctx.strokeRect(-12, part.radius + 5, 24, 3);
+        }
+        ctx.restore();
       }
 
       ctx.save();
