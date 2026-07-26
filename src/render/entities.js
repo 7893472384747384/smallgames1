@@ -365,6 +365,8 @@
         mirage: ["#70e7ff", "#64ffe0", "#f291ff"],
         gale: ["#9af5ff", "#ffd36e", "#fff2a0"],
         volt: ["#72f1ff", "#e7f45c", "#fff78d"],
+        tide: ["#6cf5ff", "#5db8ff", "#a8faff"],
+        ridge: ["#a7e870", "#d5ad65", "#e8ff9b"],
       };
       const glow = glowPalettes[boss.kind][boss.phase - 1];
       ctx.shadowBlur = boss.flash > 0 ? 34 : 18;
@@ -375,6 +377,8 @@
         mirage: sprites.bossMirage,
         gale: sprites.bossGale,
         volt: sprites.bossVolt,
+        tide: sprites.bossTide,
+        ridge: sprites.bossRidge,
       };
       const bossSprite = bossSprites[boss.kind];
       const spriteSizes = {
@@ -382,6 +386,8 @@
         mirage: [224, 158],
         gale: [220, 166],
         volt: [218, 188],
+        tide: [226, 178],
+        ridge: [232, 184],
       };
       const [spriteWidth, spriteHeight] = spriteSizes[boss.kind];
       if (bossSprite.complete && bossSprite.naturalWidth > 0) {
@@ -440,6 +446,20 @@
         ctx.lineTo(-3, -2);
         ctx.lineTo(-14, -7);
         ctx.closePath();
+        ctx.stroke();
+      } else if (boss.kind === "tide") {
+        [-48, 0, 48].forEach((x, index) => {
+          ctx.beginPath();
+          ctx.arc(x, index === 1 ? -10 : 4, 10 + index * 2, boss.age, boss.age + Math.PI * 1.6);
+          ctx.stroke();
+        });
+      } else if (boss.kind === "ridge") {
+        ctx.beginPath();
+        ctx.moveTo(-52, 9);
+        ctx.lineTo(-25, -18);
+        ctx.lineTo(0, 8);
+        ctx.lineTo(25, -18);
+        ctx.lineTo(52, 9);
         ctx.stroke();
       } else {
         ctx.beginPath();

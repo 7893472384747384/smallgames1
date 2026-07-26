@@ -27,7 +27,7 @@ require("../src/services/storage.js");
 const migrated = window.FY.loadSave();
 assert.equal(migrated.schemaVersion, 2);
 assert.equal(migrated.selectedFighter, "pulse");
-assert.equal(migrated.unlockedLevel, 4);
+assert.equal(migrated.unlockedLevel, 6);
 assert.equal(migrated.sound, false);
 
 window.FY.saveData({ ...migrated, selectedFighter: "bomber" });

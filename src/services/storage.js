@@ -2,7 +2,7 @@
   "use strict";
 
   const FY = window.FY;
-  const { STORAGE_KEY, FIGHTERS, clamp } = FY;
+  const { STORAGE_KEY, FIGHTERS, LEVELS, clamp } = FY;
   const SAVE_SCHEMA_VERSION = 2;
 
   function loadSave() {
@@ -16,7 +16,11 @@
         selectedFighter: FIGHTERS[data.selectedFighter] ? data.selectedFighter : "pulse",
         sound: data.sound !== false,
         showShieldValue: data.showShieldValue !== false,
-        unlockedLevel: clamp(Math.floor(Number(data.unlockedLevel) || 1), 1, 4),
+        unlockedLevel: clamp(
+          Math.floor(Number(data.unlockedLevel) || 1),
+          1,
+          Object.keys(LEVELS).length,
+        ),
       };
     } catch {
       return {

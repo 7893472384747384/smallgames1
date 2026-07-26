@@ -8,8 +8,10 @@ require("../src/data/balance.js");
 
 const { FIGHTERS, LEVELS, ENVIRONMENTS, BALANCE } = window.FY;
 assert.equal(Object.keys(FIGHTERS).length, 4);
-assert.equal(Object.keys(LEVELS).length, 4);
-assert.equal(ENVIRONMENTS.length, 8);
+assert.equal(Object.keys(LEVELS).length, 6);
+assert.equal(ENVIRONMENTS.length, 10);
+assert.equal(LEVELS[5].environment, "oceanFront");
+assert.equal(LEVELS[6].environment, "riverValley");
 
 for (const fighter of Object.values(FIGHTERS)) {
   assert.ok(fighter.name);

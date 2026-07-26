@@ -159,6 +159,70 @@
       }
     },
 
+    drawTideSurges() {
+      for (const surge of this.tideSurges) {
+        const active = surge.timer >= surge.strikeAt;
+        const progress = clamp(surge.timer / surge.strikeAt, 0, 1);
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.fillStyle = active
+          ? "rgba(105, 236, 255, 0.34)"
+          : `rgba(72, 190, 235, ${0.05 + progress * 0.11})`;
+        ctx.fillRect(0, surge.y - surge.height / 2, WIDTH, surge.height);
+        ctx.strokeStyle = active ? "#d9ffff" : "rgba(111, 226, 255, 0.8)";
+        ctx.lineWidth = active ? 4 : 1.5;
+        ctx.setLineDash(active ? [] : [12, 8]);
+        for (let offset = -20; offset <= 20; offset += 20) {
+          ctx.beginPath();
+          for (let x = -20; x <= WIDTH + 20; x += 18) {
+            const y = surge.y + offset + Math.sin(x * 0.055 + this.ambientTime * 8) * 7;
+            if (x === -20) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+    },
+
+    drawRockfalls() {
+      for (const rock of this.rockfalls) {
+        const active = rock.timer >= rock.strikeAt;
+        const progress = clamp(rock.timer / rock.strikeAt, 0, 1);
+        ctx.save();
+        ctx.translate(rock.x, rock.y);
+        ctx.globalCompositeOperation = "lighter";
+        ctx.strokeStyle = active ? "#fff2bd" : "rgba(255, 135, 82, 0.9)";
+        ctx.fillStyle = active
+          ? "rgba(213, 170, 91, 0.38)"
+          : `rgba(255, 94, 62, ${0.05 + progress * 0.12})`;
+        ctx.lineWidth = active ? 4 : 1.7;
+        ctx.setLineDash(active ? [] : [7, 6]);
+        ctx.beginPath();
+        ctx.arc(0, 0, rock.radius, 0, TAU);
+        ctx.fill();
+        ctx.stroke();
+        ctx.setLineDash([]);
+        if (!active) {
+          ctx.rotate(this.ambientTime * 2.4);
+          for (let i = 0; i < 4; i += 1) {
+            ctx.rotate(Math.PI / 2);
+            ctx.beginPath();
+            ctx.moveTo(rock.radius - 10, 0);
+            ctx.lineTo(rock.radius + 8, 0);
+            ctx.stroke();
+          }
+        } else {
+          ctx.fillStyle = "rgba(238, 205, 135, 0.55)";
+          ctx.beginPath();
+          ctx.arc(0, 0, rock.radius * 0.62, 0, TAU);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    },
+
     drawLockThreat() {
       const threat = this.lockThreat;
       if (!threat) return;

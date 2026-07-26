@@ -10,6 +10,8 @@
       if (this.level === 2) return this.buildLevelTwoWaves();
       if (this.level === 3) return this.buildLevelThreeWaves();
       if (this.level === 4) return this.buildLevelFourWaves();
+      if (this.level === 5) return this.buildLevelFiveWaves();
+      if (this.level === 6) return this.buildLevelSixWaves();
       return this.buildLevelOneWaves();
     },
 
@@ -204,6 +206,94 @@
       ];
     },
 
+    buildLevelFiveWaves() {
+      return [
+        { at: 0.5, run: () => this.showBanner("F-05 怒海孤航", "正在越过远海岛链", 3.2) },
+        { at: 2.5, run: () => this.spawnScoutV(8) },
+        { at: 7, run: () => this.spawnSweepers(4) },
+        {
+          at: 11,
+          run: () => {
+            this.setWeather("tide", 13, "横向涌浪");
+            this.showBanner("涌浪预警", "避开横向亮带，浪峰也会冲击敌机", 3);
+          },
+        },
+        { at: 12, run: () => this.spawnChargers(4) },
+        { at: 18, run: () => this.spawnScoutColumns(true) },
+        { at: 23, run: () => this.spawnMixedWave() },
+        {
+          at: 28,
+          run: () => {
+            this.setWeather("squall", 14, "海上飑线");
+            this.showBanner("飑线过境", "横风与双重涌浪正在接近", 2.8);
+          },
+        },
+        { at: 29, run: () => this.spawnSweepers(5) },
+        { at: 35, run: () => this.spawnChargers(5) },
+        { at: 41, run: () => this.spawnScoutV(11) },
+        {
+          at: 46,
+          run: () => {
+            this.setWeather("tide", 14, "离岸逆潮");
+            this.spawnMixedWave();
+          },
+        },
+        { at: 52, run: () => this.spawnSweepers(6) },
+        { at: 58, run: () => this.spawnChargers(5) },
+        {
+          at: 65,
+          run: () => {
+            this.setWeather("tideBoss", 999, "玄潮共振");
+            this.spawnBoss("tide");
+          },
+        },
+      ];
+    },
+
+    buildLevelSixWaves() {
+      return [
+        { at: 0.5, run: () => this.showBanner("F-06 山河险渡", "沿峡谷河道低空突入", 3.2) },
+        { at: 2.5, run: () => this.spawnScoutColumns(true) },
+        { at: 7, run: () => this.spawnChargers(4) },
+        {
+          at: 11,
+          run: () => {
+            this.setWeather("rockfall", 13, "山体落石");
+            this.showBanner("落石警告", "红圈停止追踪后立即离开冲击区", 3);
+          },
+        },
+        { at: 12, run: () => this.spawnSweepers(5) },
+        { at: 18, run: () => this.spawnScoutV(10) },
+        { at: 23, run: () => this.spawnMixedWave() },
+        {
+          at: 28,
+          run: () => {
+            this.setWeather("mountainStorm", 15, "峡谷横岚");
+            this.showBanner("山风合流", "横风与连续落石将同时出现", 2.9);
+          },
+        },
+        { at: 29, run: () => this.spawnChargers(5) },
+        { at: 35, run: () => this.spawnSweepers(6) },
+        { at: 41, run: () => this.spawnScoutColumns(true) },
+        {
+          at: 47,
+          run: () => {
+            this.setWeather("rockfall", 14, "断崖崩落");
+            this.spawnMixedWave();
+          },
+        },
+        { at: 53, run: () => this.spawnChargers(6) },
+        { at: 59, run: () => this.spawnSweepers(6) },
+        {
+          at: 67,
+          run: () => {
+            this.setWeather("ridgeBoss", 999, "山河封锁");
+            this.spawnBoss("ridge");
+          },
+        },
+      ];
+    },
+
     updateEndlessDirector() {
       if (this.mode !== "endless") return;
       const pressure = Math.floor(this.time / 30) + 1;
@@ -268,6 +358,8 @@
         sandstorm: "沙暴遗迹",
         polarNight: "极夜极光",
         orbitalRuins: "轨道残骸",
+        oceanFront: "远海岛链",
+        riverValley: "山河峡谷",
       }[environment];
     },
 
@@ -427,7 +519,11 @@
       });
     },
 
-    spawnBoss(kind = { 1: "yubo", 2: "mirage", 3: "gale", 4: "volt" }[this.level]) {
+    spawnBoss(
+      kind = { 1: "yubo", 2: "mirage", 3: "gale", 4: "volt", 5: "tide", 6: "ridge" }[
+        this.level
+      ],
+    ) {
       this.enemies.length = 0;
       this.enemyBullets.length = 0;
       const stats = {
@@ -458,6 +554,20 @@
           summonTimer: 4.4,
           intro: "边境裁决协议强制启动",
           name: "电网裁决舰 · 雷狱",
+        },
+        tide: {
+          radius: 70,
+          hp: 3550,
+          summonTimer: 4.2,
+          intro: "深海母舰跃出风暴潮",
+          name: "潮汐母舰 · 玄鲸",
+        },
+        ridge: {
+          radius: 72,
+          hp: 3900,
+          summonTimer: 4,
+          intro: "山河要塞解除岩层伪装",
+          name: "山河要塞 · 岚蛟",
         },
       }[kind];
       this.boss = {

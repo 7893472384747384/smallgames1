@@ -11,6 +11,8 @@
     "sandstorm",
     "polarNight",
     "orbitalRuins",
+    "oceanFront",
+    "riverValley",
   ];
 
   const LEVELS = {
@@ -46,6 +48,22 @@
       mission: "边境电网失控，纵横电弧会同时伤害敌我。诱导敌机进入导电区，击破控制电网的裁决舰。",
       clearTitle: "电网已解放",
     },
+    5: {
+      code: "F-05",
+      kicker: "第二章 · 01",
+      title: "怒海孤航",
+      environment: "oceanFront",
+      mission: "远海潮汐航道被深海母舰封锁。穿过岛链与涌浪，在巨浪合围前击沉潮汐核心“玄鲸”。",
+      clearTitle: "玄潮已平息",
+    },
+    6: {
+      code: "F-06",
+      kicker: "第二章 · 02",
+      title: "山河险渡",
+      environment: "riverValley",
+      mission: "敌方山河要塞沿峡谷逆流而上。躲避落石标记，沿河谷推进并摧毁风岩核心“岚蛟”。",
+      clearTitle: "山河航道已贯通",
+    },
   };
 
   const ENDLESS_ENVIRONMENTS = [
@@ -57,9 +75,11 @@
     "sandstorm",
     "polarNight",
     "orbitalRuins",
+    "oceanFront",
+    "riverValley",
   ];
 
-  const ENDLESS_BOSSES = ["yubo", "mirage", "gale", "volt"];
+  const ENDLESS_BOSSES = ["yubo", "mirage", "gale", "volt", "tide", "ridge"];
 
   const FIGHTERS = {
     pulse: {

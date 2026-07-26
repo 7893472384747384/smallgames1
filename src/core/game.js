@@ -3,6 +3,7 @@
 
   const FY = window.FY;
   const { WIDTH, HEIGHT, TAU, STORAGE_KEY, ENVIRONMENTS, LEVELS, ENDLESS_ENVIRONMENTS, ENDLESS_BOSSES, FIGHTERS, BALANCE, canvas, ctx, sprites, ui, clamp, lerp, random, distanceSquared, formatScore, formatTime, saveData, loadSave, SynthAudio } = FY;
+  const MAX_LEVEL = Object.keys(LEVELS).length;
 
   class Game {
     constructor() {
@@ -17,7 +18,7 @@
       this.pointerActive = false;
       this.pointerTarget = { x: WIDTH / 2, y: HEIGHT - 120 };
       const parameters = new URLSearchParams(window.location.search);
-      this.level = clamp(Math.floor(Number(parameters.get("level")) || 1), 1, 4);
+      this.level = clamp(Math.floor(Number(parameters.get("level")) || 1), 1, MAX_LEVEL);
       const requestedEnvironment = parameters.get("environment");
       this.environment = ENVIRONMENTS.includes(requestedEnvironment)
         ? requestedEnvironment
@@ -53,6 +54,8 @@
       ui.secondLevelButton.addEventListener("click", () => this.start(2));
       ui.thirdLevelButton.addEventListener("click", () => this.start(3));
       ui.fourthLevelButton.addEventListener("click", () => this.start(4));
+      ui.fifthLevelButton.addEventListener("click", () => this.start(5));
+      ui.sixthLevelButton.addEventListener("click", () => this.start(6));
       ui.replayButton.addEventListener("click", () => this.handleResultAction());
       ui.returnToHangarButton.addEventListener("click", () => this.returnToHangar());
       ui.resumeButton.addEventListener("click", () => this.resume());
@@ -75,6 +78,8 @@
         ui.debugLevelTwoButton.addEventListener("click", () => this.start(2));
         ui.debugLevelThreeButton.addEventListener("click", () => this.start(3));
         ui.debugLevelFourButton.addEventListener("click", () => this.start(4));
+        ui.debugLevelFiveButton.addEventListener("click", () => this.start(5));
+        ui.debugLevelSixButton.addEventListener("click", () => this.start(6));
         ui.debugBossButton.addEventListener("click", () => this.debugSkipToBoss());
         ui.debugDamageButton.addEventListener("click", () => {
           if (this.boss) this.boss.hp -= 740;
@@ -155,6 +160,8 @@
       this.lockThreat = null;
       this.corridorGate = null;
       this.gridHazards = [];
+      this.tideSurges = [];
+      this.rockfalls = [];
       this.airstrikes = [];
       this.pickupNotice = null;
       this.endless = {
@@ -171,6 +178,8 @@
         2: "云海静流",
         3: "回廊顺风",
         4: "电网待机",
+        5: "远海长涌",
+        6: "河谷清岚",
       };
       this.weather = {
         label: this.mode === "endless" ? "风暴边缘" : calmWeather[this.level],
@@ -183,6 +192,8 @@
         nextLock: 999,
         nextCorridor: 999,
         nextGrid: 999,
+        nextTide: 999,
+        nextRock: 999,
       };
       this.player = {
         x: WIDTH / 2,
@@ -229,7 +240,7 @@
     start(level = this.level) {
       this.audio.unlock();
       this.mode = "campaign";
-      this.level = clamp(Math.floor(Number(level) || 1), 1, 4);
+      this.level = clamp(Math.floor(Number(level) || 1), 1, MAX_LEVEL);
       this.resetWorld();
       this.state = "playing";
       this.hidePanels();
@@ -271,7 +282,7 @@
 
     handleResultAction() {
       if (this.mode === "endless") this.startEndless();
-      else if (this.state === "victory" && this.level < 4) this.start(this.level + 1);
+      else if (this.state === "victory" && this.level < MAX_LEVEL) this.start(this.level + 1);
       else this.start(this.level);
     }
 
@@ -360,6 +371,8 @@
       ui.secondLevelButton.hidden = this.save.unlockedLevel < 2;
       ui.thirdLevelButton.hidden = this.save.unlockedLevel < 3;
       ui.fourthLevelButton.hidden = this.save.unlockedLevel < 4;
+      ui.fifthLevelButton.hidden = this.save.unlockedLevel < 5;
+      ui.sixthLevelButton.hidden = this.save.unlockedLevel < 6;
     }
 
     showBanner(title, subtitle = "", duration = 2.5) {
@@ -680,7 +693,12 @@
         return;
       }
       this.state = victory ? "victory" : "gameover";
-      if (victory) this.save.unlockedLevel = Math.max(this.save.unlockedLevel, Math.min(4, this.level + 1));
+      if (victory) {
+        this.save.unlockedLevel = Math.max(
+          this.save.unlockedLevel,
+          Math.min(MAX_LEVEL, this.level + 1),
+        );
+      }
       if (this.score > this.save.bestScore) {
         this.save.bestScore = Math.floor(this.score);
       }
@@ -698,21 +716,25 @@
         1: "晴空防线恢复稳定。第二航路“云海追猎”已经开放。",
         2: "蜃影信号消失。第三航路“风塔回廊”已经开放。",
         3: "风塔叶阵恢复同步。第四航路“电网边境”已经开放。",
-        4: "裁决回路已经切断，边境电网重归友军控制。第一章前四关完成。",
+        4: "裁决回路已经切断。第五航路“怒海孤航”已经开放。",
+        5: "玄鲸沉入深海。第六航路“山河险渡”已经开放。",
+        6: "岚蛟核心停止运转，山河航道重归平静。第二章前两关完成。",
       };
       const failureMessages = {
         1: "调整飞行路线，利用雷击摧毁敌机后再次出击。",
         2: "观察锁定准星的闭合时机，利用云隙重新发起追猎。",
         3: "先识别青色安全航道，再跟随横风完成位置修正。",
         4: "预判横纵预警线，并把敌机引入即将放电的网格。",
+        5: "观察横向涌浪的预警带，提前飞出浪峰覆盖范围。",
+        6: "落石标记锁定后不再追踪，持续移动即可避开冲击区。",
       };
       ui.resultMessage.textContent = victory
         ? victoryMessages[this.level]
         : failureMessages[this.level];
       ui.replayButton.textContent = victory
-        ? this.level < 4
-          ? `进入第${["", "一", "二", "三", "四"][this.level + 1]}关`
-          : "再次挑战第四关"
+        ? this.level < MAX_LEVEL
+          ? `进入第${["", "一", "二", "三", "四", "五", "六"][this.level + 1]}关`
+          : "再次挑战第六关"
         : "重新挑战本关";
       setTimeout(() => ui.resultPanel.classList.add("visible"), victory ? 900 : 350);
       if (victory) this.audio.victory();
@@ -729,6 +751,8 @@
         this.drawLightningZones();
         this.drawCorridorGate();
         this.drawGridHazards();
+        this.drawTideSurges();
+        this.drawRockfalls();
         this.drawAirstrikes();
         this.drawParticles();
         this.drawPlayerLaser();
@@ -829,6 +853,10 @@
             }
           : null,
         weather: this.weather.type,
+        hazards: {
+          tideSurges: this.tideSurges.length,
+          rockfalls: this.rockfalls.length,
+        },
         endless:
           this.mode === "endless"
             ? {
@@ -856,12 +884,14 @@
         return;
       }
       if (this.state !== "playing") this.start(this.level);
-      const times = { 1: 68, 2: 57, 3: 58, 4: 58 };
+      const times = { 1: 68, 2: 57, 3: 58, 4: 58, 5: 65, 6: 67 };
       const bossWeather = {
         1: ["boss", "超胞雷暴", "yubo"],
         2: ["mirageBoss", "蜃影云场", "mirage"],
         3: ["galeBoss", "风塔共振", "gale"],
         4: ["voltBoss", "裁决电网", "volt"],
+        5: ["tideBoss", "玄潮共振", "tide"],
+        6: ["ridgeBoss", "山河封锁", "ridge"],
       };
       this.time = times[this.level];
       this.waveIndex = this.waves.length;

@@ -15,6 +15,8 @@
         sandstorm: ["#291912", "#75442a", "#342015", "#ffd6a2"],
         polarNight: ["#071525", "#103c4a", "#10192f", "#c9fff4"],
         orbitalRuins: ["#030711", "#10182d", "#070a17", "#d9e5ff"],
+        oceanFront: ["#031b2c", "#07536a", "#042a42", "#b8f7ff"],
+        riverValley: ["#071c18", "#245348", "#10291f", "#e1ffd2"],
       };
       const palette = palettes[this.environment];
       const gradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
@@ -86,6 +88,8 @@
       else if (this.environment === "thunderCanyon") this.drawThunderCanyon();
       else if (this.environment === "sandstorm") this.drawSandstormRuins();
       else if (this.environment === "polarNight") this.drawPolarAurora();
+      else if (this.environment === "oceanFront") this.drawOceanFront();
+      else if (this.environment === "riverValley") this.drawRiverValley();
       else this.drawOrbitalRuins();
       const vignette = ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, 170, WIDTH / 2, HEIGHT / 2, 490);
       vignette.addColorStop(0, "rgba(0,0,0,0)");
@@ -384,6 +388,102 @@
           ctx.strokeRect(-12, -6, 24 + (i % 2) * 15, 12);
           ctx.restore();
         }
+      }
+      ctx.restore();
+    },
+
+    drawOceanFront() {
+      const scroll = (this.ambientTime * 34) % 180;
+      ctx.save();
+      const sea = ctx.createLinearGradient(0, 0, WIDTH, 0);
+      sea.addColorStop(0, "rgba(2, 18, 31, 0.62)");
+      sea.addColorStop(0.5, "rgba(13, 105, 128, 0.2)");
+      sea.addColorStop(1, "rgba(2, 18, 31, 0.62)");
+      ctx.fillStyle = sea;
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      ctx.strokeStyle = "rgba(135, 244, 255, 0.25)";
+      ctx.lineWidth = 1.2;
+      for (let row = -1; row < 7; row += 1) {
+        const y = row * 180 + scroll;
+        ctx.beginPath();
+        for (let x = -20; x <= WIDTH + 20; x += 16) {
+          const waveY = y + Math.sin(x * 0.048 + row + this.ambientTime * 1.4) * 8;
+          if (x === -20) ctx.moveTo(x, waveY);
+          else ctx.lineTo(x, waveY);
+        }
+        ctx.stroke();
+      }
+
+      for (let row = -1; row < 5; row += 1) {
+        const y = row * 235 + ((this.ambientTime * 27) % 235);
+        for (const side of [-1, 1]) {
+          const x = side < 0 ? 32 + (row % 2) * 18 : WIDTH - 38 - (row % 2) * 16;
+          ctx.fillStyle = "rgba(18, 54, 48, 0.78)";
+          ctx.strokeStyle = "rgba(92, 211, 177, 0.3)";
+          ctx.beginPath();
+          ctx.ellipse(x, y, 42, 22, side * 0.28, 0, TAU);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "rgba(88, 135, 73, 0.34)";
+          ctx.beginPath();
+          ctx.ellipse(x - side * 5, y - 3, 23, 10, 0, 0, TAU);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    },
+
+    drawRiverValley() {
+      const scroll = (this.ambientTime * 31) % 260;
+      ctx.save();
+      ctx.fillStyle = "rgba(12, 35, 24, 0.74)";
+      ctx.strokeStyle = "rgba(139, 196, 112, 0.24)";
+      for (let row = -1; row < 5; row += 1) {
+        const y = row * 260 + scroll;
+        ctx.beginPath();
+        ctx.moveTo(0, y - 120);
+        ctx.lineTo(82, y - 72);
+        ctx.lineTo(42, y - 8);
+        ctx.lineTo(108, y + 82);
+        ctx.lineTo(0, y + 148);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(WIDTH, y - 105);
+        ctx.lineTo(WIDTH - 76, y - 55);
+        ctx.lineTo(WIDTH - 38, y + 10);
+        ctx.lineTo(WIDTH - 102, y + 94);
+        ctx.lineTo(WIDTH, y + 154);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      ctx.globalCompositeOperation = "lighter";
+      ctx.strokeStyle = "rgba(104, 224, 224, 0.28)";
+      ctx.lineWidth = 62;
+      ctx.beginPath();
+      ctx.moveTo(WIDTH / 2 + Math.sin(this.ambientTime * 0.7) * 46, -30);
+      ctx.bezierCurveTo(
+        110,
+        210,
+        350,
+        420,
+        WIDTH / 2 + Math.sin(this.ambientTime * 0.7 + 2) * 62,
+        HEIGHT + 40,
+      );
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(195, 255, 231, 0.24)";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 10; i += 1) {
+        const y = (i * 91 + this.ambientTime * 55) % HEIGHT;
+        const center = WIDTH / 2 + Math.sin(y * 0.012 + this.ambientTime * 0.7) * 58;
+        ctx.beginPath();
+        ctx.moveTo(center - 21, y);
+        ctx.lineTo(center + 21, y + 5);
+        ctx.stroke();
       }
       ctx.restore();
     },

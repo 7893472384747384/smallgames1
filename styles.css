@@ -486,7 +486,7 @@ button {
 .level-shortcuts {
   width: min(100%, 330px);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 6px;
   margin-top: 8px;
 }

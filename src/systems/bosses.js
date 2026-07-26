@@ -20,6 +20,8 @@
             mirage: "击破蜃影的三联追猎核心",
             gale: "击破罡虎机的双风轮核心",
             volt: "切断雷狱的裁决供电回路",
+            tide: "击破玄鲸的深海潮汐反应炉",
+            ridge: "摧毁岚蛟的山河风岩核心",
           };
           this.showBanner(
             "BOSS 战",
@@ -40,6 +42,14 @@
       }
       if (boss.kind === "volt") {
         this.updateVoltBoss(dt);
+        return;
+      }
+      if (boss.kind === "tide") {
+        this.updateTideBoss(dt);
+        return;
+      }
+      if (boss.kind === "ridge") {
+        this.updateRidgeBoss(dt);
         return;
       }
 
@@ -296,6 +306,128 @@
         boss.summonTimer = boss.phase === 3 ? 3.1 : 4.9;
       }
 
+      if (boss.hp <= 0) this.destroyBoss();
+    },
+
+    updateTideBoss(dt) {
+      const boss = this.boss;
+      if (!boss) return;
+      const ratio = boss.hp / boss.maxHp;
+      const nextPhase = ratio > 0.68 ? 1 : ratio > 0.34 ? 2 : 3;
+      if (nextPhase !== boss.phase) {
+        boss.phase = nextPhase;
+        boss.fireTimer = 0.25;
+        boss.summonTimer = 2.1;
+        this.screenFlash = 0.25;
+        this.shake = 8;
+        this.showBanner(
+          nextPhase === 2 ? "双翼潮门展开" : "深海反应炉临界",
+          `玄鲸进入第 ${nextPhase} 潮汐形态`,
+          2.2,
+        );
+      }
+      boss.x = WIDTH / 2 + Math.sin(boss.age * (boss.phase === 3 ? 1.12 : 0.68)) * 132;
+      boss.y = 142 + Math.sin(boss.age * 1.5) * 14;
+      boss.fireTimer -= dt;
+      boss.summonTimer -= dt;
+
+      if (boss.fireTimer <= 0) {
+        if (boss.phase === 1) {
+          this.fireFan(boss.x - 54, boss.y + 26, 5, 0.14, 150, "#72f2ff");
+          this.fireFan(boss.x + 54, boss.y + 26, 5, 0.14, 150, "#4faeff");
+          boss.fireTimer = 1;
+        } else if (boss.phase === 2) {
+          this.fireRadial(boss.x, boss.y, 18, 120, "#65eaff", boss.patternStep * 0.16);
+          if (boss.patternStep % 2 === 0) this.createTideSurge();
+          boss.patternStep += 1;
+          boss.fireTimer = 0.76;
+        } else {
+          this.fireSpiral(boss.x - 45, boss.y + 16, boss.patternStep, "#7efcff");
+          this.fireSpiral(boss.x + 45, boss.y + 16, -boss.patternStep, "#778cff");
+          if (boss.patternStep % 4 === 0) this.createTideSurge();
+          boss.patternStep += 1;
+          boss.fireTimer = 0.34;
+        }
+      }
+
+      if (boss.summonTimer <= 0) {
+        if (boss.phase === 1) {
+          this.spawnEnemy("scout", clamp(boss.x - 76, 40, WIDTH - 40), boss.y + 20, {
+            phase: boss.age,
+          });
+          this.spawnEnemy("scout", clamp(boss.x + 76, 40, WIDTH - 40), boss.y + 20, {
+            phase: boss.age + 1,
+          });
+        } else if (boss.phase === 2) {
+          this.spawnEnemy("sweeper", clamp(boss.x, 55, WIDTH - 55), boss.y + 18, {
+            phase: boss.age,
+            hpScale: 0.95,
+          });
+        } else {
+          this.createTideSurge();
+        }
+        boss.summonTimer = boss.phase === 3 ? 3 : 4.7;
+      }
+      if (boss.hp <= 0) this.destroyBoss();
+    },
+
+    updateRidgeBoss(dt) {
+      const boss = this.boss;
+      if (!boss) return;
+      const ratio = boss.hp / boss.maxHp;
+      const nextPhase = ratio > 0.7 ? 1 : ratio > 0.35 ? 2 : 3;
+      if (nextPhase !== boss.phase) {
+        boss.phase = nextPhase;
+        boss.fireTimer = 0.24;
+        boss.summonTimer = 2;
+        this.screenFlash = 0.26;
+        this.shake = 9;
+        this.showBanner(
+          nextPhase === 2 ? "山翼岩甲展开" : "风岩核心超载",
+          `岚蛟进入第 ${nextPhase} 山河形态`,
+          2.2,
+        );
+      }
+      boss.x = WIDTH / 2 + Math.sin(boss.age * (boss.phase === 3 ? 1.25 : 0.74)) * 122;
+      boss.y = 143 + Math.sin(boss.age * 1.7) * 12;
+      boss.fireTimer -= dt;
+      boss.summonTimer -= dt;
+
+      if (boss.fireTimer <= 0) {
+        if (boss.phase === 1) {
+          this.fireFan(boss.x, boss.y + 38, 9, 0.12, 154, "#b6e86c");
+          boss.fireTimer = 0.98;
+        } else if (boss.phase === 2) {
+          this.fireRadial(boss.x, boss.y, 20, 124, "#8fda72", boss.patternStep * 0.14);
+          if (boss.patternStep % 2 === 0) this.createRockfall();
+          boss.patternStep += 1;
+          boss.fireTimer = 0.74;
+        } else {
+          this.fireSpiral(boss.x, boss.y + 18, boss.patternStep, "#d8b069");
+          this.fireFan(boss.x, boss.y + 34, 7, 0.1, 184, "#95e393");
+          if (boss.patternStep % 3 === 0) this.createRockfall();
+          boss.patternStep += 1;
+          boss.fireTimer = 0.4;
+        }
+      }
+
+      if (boss.summonTimer <= 0) {
+        if (boss.phase === 1) {
+          this.spawnEnemy("charger", clamp(this.player.x + random(-95, 95), 45, WIDTH - 45), -45, {
+            phase: boss.age,
+            hpScale: 0.95,
+          });
+        } else if (boss.phase === 2) {
+          this.spawnEnemy("sweeper", clamp(boss.x, 55, WIDTH - 55), boss.y + 20, {
+            phase: boss.age,
+            hpScale: 1,
+          });
+        } else {
+          this.createRockfall();
+          this.createRockfall(random(55, WIDTH - 55), random(190, HEIGHT - 135));
+        }
+        boss.summonTimer = boss.phase === 3 ? 2.9 : 4.6;
+      }
       if (boss.hp <= 0) this.destroyBoss();
     },
   };

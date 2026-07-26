@@ -70,7 +70,7 @@ global.window = {
   AudioContext: null,
   webkitAudioContext: null,
 };
-let storedSave = JSON.stringify({ unlockedLevel: 4, sound: false });
+let storedSave = JSON.stringify({ unlockedLevel: 6, sound: false });
 global.localStorage = {
   getItem: () => storedSave,
   setItem: (_key, value) => {
@@ -153,6 +153,38 @@ assert.deepEqual(
   { kind: "volt", hp: 3200, weather: "voltBoss" },
 );
 
+window.__FENGYUN_GAME__.startLevelFive();
+frameCallback(performance.now() + 48);
+assert.equal(window.__FENGYUN_GAME__.snapshot().level, 5);
+assert.equal(window.__FENGYUN_GAME__.snapshot().environment, "oceanFront");
+window.__FENGYUN_GAME__.skipToBoss();
+assert.deepEqual(
+  {
+    kind: window.__FENGYUN_GAME__.snapshot().boss.kind,
+    hp: window.__FENGYUN_GAME__.snapshot().boss.hp,
+    weather: window.__FENGYUN_GAME__.snapshot().weather,
+  },
+  { kind: "tide", hp: 3550, weather: "tideBoss" },
+);
+window.__FENGYUN_GAME__.advanceWorld(1.4);
+assert.ok(window.__FENGYUN_GAME__.snapshot().hazards.tideSurges > 0);
+
+window.__FENGYUN_GAME__.startLevelSix();
+frameCallback(performance.now() + 64);
+assert.equal(window.__FENGYUN_GAME__.snapshot().level, 6);
+assert.equal(window.__FENGYUN_GAME__.snapshot().environment, "riverValley");
+window.__FENGYUN_GAME__.skipToBoss();
+assert.deepEqual(
+  {
+    kind: window.__FENGYUN_GAME__.snapshot().boss.kind,
+    hp: window.__FENGYUN_GAME__.snapshot().boss.hp,
+    weather: window.__FENGYUN_GAME__.snapshot().weather,
+  },
+  { kind: "ridge", hp: 3900, weather: "ridgeBoss" },
+);
+window.__FENGYUN_GAME__.advanceWorld(1.35);
+assert.ok(window.__FENGYUN_GAME__.snapshot().hazards.rockfalls > 0);
+
 window.__FENGYUN_GAME__.startEndless();
 assert.deepEqual(
   {
@@ -230,4 +262,4 @@ const bossHpBeforeBombing = window.__FENGYUN_GAME__.snapshot().boss.hp;
 window.__FENGYUN_GAME__.advanceWorld(2);
 assert.ok(window.__FENGYUN_GAME__.snapshot().boss.hp < bossHpBeforeBombing);
 
-console.log("Campaign, endless mode, and four-fighter selection smoke tests passed.");
+console.log("Six-level campaign, endless mode, and four-fighter selection smoke tests passed.");

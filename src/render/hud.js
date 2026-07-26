@@ -123,6 +123,8 @@
           mirage: "隐云母舰 · 蜃影",
           gale: "风塔守卫 · 罡虎机",
           volt: "电网裁决舰 · 雷狱",
+          tide: "潮汐母舰 · 玄鲸",
+          ridge: "山河要塞 · 岚蛟",
         };
         this.drawHudPanel(70, 212, WIDTH - 140, 31);
         ctx.fillStyle = "#bbd6df";
