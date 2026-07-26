@@ -222,6 +222,7 @@
         laserCooling: false,
         laserActive: false,
         laserEndY: 0,
+        laserBeams: [],
         laserSparkTimer: 0,
         laserAudioTimer: 0,
         dualLaserActive: false,
@@ -566,6 +567,7 @@
         this.updateBomberWeapon(dt);
       } else {
         player.laserActive = false;
+        player.laserBeams = [];
         player.fireTimer -= dt;
         if (player.fireTimer <= 0) {
           this.firePlayerWeapon();
@@ -866,8 +868,8 @@
           dualLaserCooldown: Number(this.player.dualLaserCooldown.toFixed(2)),
           bombTimer: Number(this.player.bombTimer.toFixed(2)),
           bombInterval: Number(this.player.bombInterval.toFixed(2)),
-          firepowerMultiplier:
-            this.player.amplifierTimer > 0 ? BALANCE.amplifier.damageMultiplier : 1,
+          weaponCopies: this.player.amplifierTimer > 0 ? BALANCE.amplifier.weaponCopies : 1,
+          laserBeamCount: this.player.laserBeams.length,
         },
         player: {
           hull: this.player.hull,

@@ -41,7 +41,7 @@
       maxCharges: 3,
       duration: 7,
       maxDuration: 14,
-      damageMultiplier: 2,
+      weaponCopies: 2,
     }),
   });
 })();

@@ -41,6 +41,12 @@ const game = new FY.Game();
       game.player.bombTimer = 0;
       return game.getSnapshot();
     },
+    spawnSingleBombTarget: () => {
+      game.enemies.length = 0;
+      game.spawnEnemy("sweeper", 225, 180, { phase: 0 });
+      game.player.bombTimer = 0;
+      return game.getSnapshot();
+    },
     chargeBurst: () => {
       game.player.energy = 100;
     },

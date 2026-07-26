@@ -114,7 +114,9 @@
       }
       if (this.fighterId !== "laser" || !player.laserActive) return;
       const startY = player.y - 43;
-      const endY = Math.min(startY - 4, player.laserEndY);
+      const beams = player.laserBeams.length
+        ? player.laserBeams
+        : [{ x: player.x, endY: player.laserEndY }];
       const boosted =
         player.burstTimer > 0 || player.overdriveTimer > 0 || player.amplifierTimer > 0;
       const heatRatio = player.laserHeat / 100;
@@ -124,24 +126,29 @@
       ctx.globalCompositeOperation = "lighter";
       ctx.shadowBlur = boosted ? 24 : 17;
       ctx.shadowColor = beamColor;
-      ctx.strokeStyle = boosted ? "rgba(104, 231, 255, 0.32)" : "rgba(80, 219, 255, 0.25)";
-      ctx.lineWidth = boosted ? 13 : 9;
-      ctx.beginPath();
-      ctx.moveTo(player.x + shimmer, startY);
-      ctx.lineTo(player.x - shimmer, endY);
-      ctx.stroke();
-      ctx.strokeStyle = beamColor;
-      ctx.lineWidth = boosted ? 6 : 4;
-      ctx.beginPath();
-      ctx.moveTo(player.x + shimmer, startY);
-      ctx.lineTo(player.x - shimmer, endY);
-      ctx.stroke();
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = boosted ? 2.4 : 1.5;
-      ctx.beginPath();
-      ctx.moveTo(player.x, startY);
-      ctx.lineTo(player.x, endY);
-      ctx.stroke();
+      for (const beam of beams) {
+        const endY = Math.min(startY - 4, beam.endY);
+        ctx.strokeStyle = boosted
+          ? "rgba(104, 231, 255, 0.32)"
+          : "rgba(80, 219, 255, 0.25)";
+        ctx.lineWidth = boosted ? 13 : 9;
+        ctx.beginPath();
+        ctx.moveTo(beam.x + shimmer, startY);
+        ctx.lineTo(beam.x - shimmer, endY);
+        ctx.stroke();
+        ctx.strokeStyle = beamColor;
+        ctx.lineWidth = boosted ? 6 : 4;
+        ctx.beginPath();
+        ctx.moveTo(beam.x + shimmer, startY);
+        ctx.lineTo(beam.x - shimmer, endY);
+        ctx.stroke();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = boosted ? 2.4 : 1.5;
+        ctx.beginPath();
+        ctx.moveTo(beam.x, startY);
+        ctx.lineTo(beam.x, endY);
+        ctx.stroke();
+      }
       ctx.restore();
     },
 
@@ -153,7 +160,11 @@
         player.burstTimer > 0 || player.overdriveTimer > 0 || player.amplifierTimer > 0;
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
-      for (const x of [player.x - 11, player.x + 11]) {
+      const beamXs =
+        player.amplifierTimer > 0
+          ? [player.x - 27, player.x - 9, player.x + 9, player.x + 27]
+          : [player.x - 11, player.x + 11];
+      for (const x of beamXs) {
         ctx.shadowBlur = boosted ? 22 : 16;
         ctx.shadowColor = "#ff7a42";
         ctx.strokeStyle = "rgba(255, 75, 42, 0.42)";
