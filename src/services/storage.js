@@ -8,21 +8,28 @@
   function loadSave() {
     try {
       const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      const bestRanks =
+        data.bestRanks && typeof data.bestRanks === "object" ? { ...data.bestRanks } : {};
+      let unlockedLevel = clamp(
+        Math.floor(Number(data.unlockedLevel) || 1),
+        1,
+        Object.keys(LEVELS).length,
+      );
+      for (const completedLevel of Object.keys(bestRanks).map(Number)) {
+        if (LEVELS[completedLevel + 1]) {
+          unlockedLevel = Math.max(unlockedLevel, completedLevel + 1);
+        }
+      }
       return {
         schemaVersion: SAVE_SCHEMA_VERSION,
         bestScore: Number.isFinite(data.bestScore) ? data.bestScore : 0,
         bestEndlessScore: Number.isFinite(data.bestEndlessScore) ? data.bestEndlessScore : 0,
         bestEndlessTime: Number.isFinite(data.bestEndlessTime) ? data.bestEndlessTime : 0,
-        bestRanks:
-          data.bestRanks && typeof data.bestRanks === "object" ? { ...data.bestRanks } : {},
+        bestRanks,
         selectedFighter: FIGHTERS[data.selectedFighter] ? data.selectedFighter : "pulse",
         sound: data.sound !== false,
         showShieldValue: data.showShieldValue !== false,
-        unlockedLevel: clamp(
-          Math.floor(Number(data.unlockedLevel) || 1),
-          1,
-          Object.keys(LEVELS).length,
-        ),
+        unlockedLevel,
       };
     } catch {
       return {

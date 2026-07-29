@@ -64,6 +64,22 @@
       mission: "敌方山河要塞沿峡谷逆流而上。躲避落石标记，沿河谷推进并摧毁风岩核心“岚蛟”。",
       clearTitle: "山河航道已贯通",
     },
+    7: {
+      code: "F-07",
+      kicker: "第二章 · 03",
+      title: "逆风突围",
+      environment: "sandstorm",
+      mission: "赤色追击舰正借沙暴封锁遗迹航路。保持在沙暴前锋上方，击破矢量推进器并摧毁“赤骥”。",
+      clearTitle: "沙海封锁已突破",
+    },
+    8: {
+      code: "F-08",
+      kicker: "第二章 · 04",
+      title: "雷暴核心",
+      environment: "thunderCanyon",
+      mission: "雷鸣峡谷的四区引雷阵列已经启动。识别充能扇区，切断双侧引雷翼并摧毁核心舰“夔龙”。",
+      clearTitle: "雷暴核心已熄灭",
+    },
   };
 
   const ENDLESS_ENVIRONMENTS = [
@@ -79,7 +95,16 @@
     "riverValley",
   ];
 
-  const ENDLESS_BOSSES = ["yubo", "mirage", "gale", "volt", "tide", "ridge"];
+  const ENDLESS_BOSSES = [
+    "yubo",
+    "mirage",
+    "gale",
+    "volt",
+    "tide",
+    "ridge",
+    "chiji",
+    "kuilong",
+  ];
 
   const FIGHTERS = {
     pulse: {

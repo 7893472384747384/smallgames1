@@ -223,6 +223,79 @@
       }
     },
 
+    drawSandFront() {
+      const front = this.sandFront;
+      if (!front) return;
+      const warning = front.timer < front.strikeAt;
+      const targetY = front.targetY + front.retreatOffset;
+      const edgeY = warning ? targetY : front.edgeY;
+      ctx.save();
+      const gradient = ctx.createLinearGradient(0, edgeY - 36, 0, HEIGHT);
+      gradient.addColorStop(0, warning ? "rgba(255, 184, 98, 0.04)" : "rgba(255, 183, 86, 0.22)");
+      gradient.addColorStop(0.18, warning ? "rgba(255, 128, 62, 0.08)" : "rgba(208, 93, 43, 0.45)");
+      gradient.addColorStop(1, warning ? "rgba(106, 45, 25, 0.08)" : "rgba(68, 27, 18, 0.88)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, edgeY - 36, WIDTH, HEIGHT - edgeY + 36);
+      ctx.globalCompositeOperation = "lighter";
+      ctx.strokeStyle = warning ? "rgba(255, 211, 142, 0.85)" : "#ffd08a";
+      ctx.lineWidth = warning ? 2 : 4;
+      ctx.setLineDash(warning ? [13, 9] : []);
+      ctx.beginPath();
+      for (let x = -10; x <= WIDTH + 10; x += 14) {
+        const y = edgeY + Math.sin(x * 0.055 + this.ambientTime * 8) * 8;
+        if (x === -10) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      if (!warning) {
+        ctx.strokeStyle = "rgba(255, 191, 107, 0.42)";
+        ctx.lineWidth = 1.4;
+        for (let i = 0; i < 18; i += 1) {
+          const y = edgeY + 18 + ((i * 29 + this.ambientTime * 95) % Math.max(40, HEIGHT - edgeY));
+          const x = (i * 71 + this.ambientTime * 120) % (WIDTH + 80) - 40;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + 44, y + 5);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    },
+
+    drawStormSectors() {
+      for (const sector of this.stormSectors) {
+        const active = sector.timer >= sector.strikeAt;
+        const progress = clamp(sector.timer / sector.strikeAt, 0, 1);
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.fillStyle = active
+          ? "rgba(178, 105, 255, 0.36)"
+          : `rgba(149, 86, 255, ${0.055 + progress * 0.12})`;
+        ctx.fillRect(sector.x, 0, sector.width, HEIGHT);
+        ctx.strokeStyle = active ? "#f2e5ff" : "rgba(208, 165, 255, 0.9)";
+        ctx.lineWidth = active ? 4 : 1.7;
+        ctx.setLineDash(active ? [] : [9, 7]);
+        ctx.strokeRect(sector.x + 1, 1, sector.width - 2, HEIGHT - 2);
+        ctx.setLineDash([]);
+        if (active) {
+          ctx.strokeStyle = "#e9d5ff";
+          ctx.lineWidth = 2.6;
+          for (let column = 0; column < 3; column += 1) {
+            let x = sector.x + ((column + 1) * sector.width) / 4;
+            ctx.beginPath();
+            ctx.moveTo(x, -10);
+            for (let y = 0; y <= HEIGHT + 20; y += 32) {
+              x += random(-11, 11);
+              ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+      }
+    },
+
     drawLockThreat() {
       const threat = this.lockThreat;
       if (!threat) return;

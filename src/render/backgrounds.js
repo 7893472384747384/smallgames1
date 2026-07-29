@@ -21,7 +21,11 @@
       const palette = palettes[this.environment];
       const gradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
       const storming =
-        this.weather?.type === "storm" || this.weather?.type === "boss" || this.weather?.type === "thunder";
+        this.weather?.type === "storm" ||
+        this.weather?.type === "boss" ||
+        this.weather?.type === "thunder" ||
+        this.weather?.type === "chijiBoss" ||
+        this.weather?.type === "kuilongBoss";
       if (storming) {
         gradient.addColorStop(0, "#080b18");
         gradient.addColorStop(0.45, this.environment === "sandstorm" ? "#3b2724" : "#18233a");
@@ -276,6 +280,13 @@
     drawThunderCanyon() {
       const scroll = (this.ambientTime * 25) % 260;
       ctx.save();
+      const corePulse = 0.13 + Math.sin(this.ambientTime * 2.4) * 0.035;
+      const core = ctx.createRadialGradient(WIDTH / 2, 175, 4, WIDTH / 2, 175, 150);
+      core.addColorStop(0, `rgba(213, 170, 255, ${corePulse + 0.09})`);
+      core.addColorStop(0.35, `rgba(112, 82, 220, ${corePulse})`);
+      core.addColorStop(1, "rgba(80, 41, 150, 0)");
+      ctx.fillStyle = core;
+      ctx.fillRect(0, 0, WIDTH, 360);
       ctx.fillStyle = "rgba(27, 16, 48, 0.72)";
       ctx.strokeStyle = "rgba(190, 116, 255, 0.3)";
       ctx.lineWidth = 1.3;
@@ -300,12 +311,47 @@
         ctx.fill();
         ctx.stroke();
       }
+      ctx.globalCompositeOperation = "lighter";
+      for (const side of [-1, 1]) {
+        const x = side < 0 ? 58 : WIDTH - 58;
+        ctx.strokeStyle = "rgba(191, 147, 255, 0.42)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, HEIGHT + 30);
+        ctx.lineTo(x + side * 9, HEIGHT - 150);
+        ctx.lineTo(x - side * 6, HEIGHT - 255);
+        ctx.lineTo(x, HEIGHT - 345);
+        ctx.stroke();
+        for (let node = 0; node < 4; node += 1) {
+          const y = HEIGHT - 95 - node * 150 + scroll * 0.35;
+          ctx.fillStyle = "rgba(118, 80, 192, 0.68)";
+          ctx.strokeStyle = "rgba(218, 188, 255, 0.55)";
+          ctx.beginPath();
+          ctx.moveTo(x, y - 23);
+          ctx.lineTo(x + 11, y + 7);
+          ctx.lineTo(x, y + 21);
+          ctx.lineTo(x - 11, y + 7);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
       ctx.restore();
     },
 
     drawSandstormRuins() {
       const scroll = (this.ambientTime * 20) % 230;
       ctx.save();
+      const sun = ctx.createRadialGradient(WIDTH - 78, 112, 5, WIDTH - 78, 112, 88);
+      sun.addColorStop(0, "rgba(255, 236, 171, 0.48)");
+      sun.addColorStop(0.32, "rgba(255, 154, 76, 0.18)");
+      sun.addColorStop(1, "rgba(255, 125, 54, 0)");
+      ctx.fillStyle = sun;
+      ctx.fillRect(WIDTH - 180, 10, 180, 210);
+      ctx.fillStyle = "rgba(255, 207, 132, 0.16)";
+      ctx.beginPath();
+      ctx.arc(WIDTH - 78, 112, 34, 0, TAU);
+      ctx.fill();
       const haze = ctx.createLinearGradient(0, 0, WIDTH, 0);
       haze.addColorStop(0, "rgba(255, 154, 80, 0)");
       haze.addColorStop(0.45, "rgba(255, 177, 100, 0.13)");
@@ -332,6 +378,24 @@
         ctx.moveTo(x, y);
         ctx.lineTo(x + 35, y + 4);
         ctx.stroke();
+      }
+      ctx.fillStyle = "rgba(83, 39, 23, 0.38)";
+      for (let layer = 0; layer < 3; layer += 1) {
+        const baseY = HEIGHT - 90 + layer * 45;
+        ctx.beginPath();
+        ctx.moveTo(0, baseY);
+        for (let x = 0; x <= WIDTH; x += 45) {
+          const y =
+            baseY -
+            18 -
+            Math.sin(x * 0.018 + this.ambientTime * (0.22 + layer * 0.08) + layer) *
+              (22 + layer * 5);
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(WIDTH, HEIGHT);
+        ctx.lineTo(0, HEIGHT);
+        ctx.closePath();
+        ctx.fill();
       }
       ctx.restore();
     },

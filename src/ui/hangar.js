@@ -2,7 +2,8 @@
   "use strict";
 
   const FY = window.FY;
-  const { FIGHTERS, ui } = FY;
+  const { FIGHTERS, LEVELS, ui } = FY;
+  const numerals = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
 
   for (const [fighterId, fighter] of Object.entries(FIGHTERS)) {
     const button = document.createElement("button");
@@ -24,5 +25,16 @@
     button.append(image, copy);
     ui.fighterSelector.append(button);
     ui.fighterButtons[fighterId] = button;
+  }
+
+  for (const level of Object.keys(LEVELS).map(Number).filter((value) => value > 1)) {
+    const button = document.createElement("button");
+    button.id = `level-${level}`;
+    button.className = "secondary-button";
+    button.type = "button";
+    button.hidden = true;
+    button.textContent = `第${numerals[level] || level}关`;
+    ui.levelShortcuts.append(button);
+    ui.levelButtons[level] = button;
   }
 })();

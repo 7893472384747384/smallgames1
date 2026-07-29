@@ -26,7 +26,7 @@
 5. 在 `src/render/entities.js`、`src/render/effects.js` 或 `src/render/hud.js` 添加必要绘制。
 6. 在 `tests/catalog.test.js` 和 `tests/smoke.js` 中补充验证。
 
-机库按钮、选中状态和本地保存验证会自动读取 `FIGHTERS`，不再需要为每架战机手工增加事件绑定。
+机库按钮、关卡按钮、选中状态和本地保存验证会自动读取 `FIGHTERS` 与 `LEVELS`，不再需要为每架战机或每个关卡手工增加入口事件。
 
 ## 新增关卡
 
@@ -39,7 +39,7 @@
 
 ## 存档兼容
 
-存档继续使用键 `fengyun-fighter-save-v1`，数据中新增 `schemaVersion`。当前版本为 `2`；以后改变字段结构时，应在 `services/storage.js` 中迁移旧数据，不直接丢弃玩家记录。
+存档继续使用键 `fengyun-fighter-save-v1`，数据中新增 `schemaVersion`。当前版本为 `3`；以后改变字段结构时，应在 `services/storage.js` 中迁移旧数据，不直接丢弃玩家记录。
 
 ## 验证
 

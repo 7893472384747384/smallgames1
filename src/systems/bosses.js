@@ -25,6 +25,8 @@
             volt: "切断雷狱的裁决供电回路",
             tide: "击破玄鲸的深海潮汐反应炉",
             ridge: "摧毁岚蛟的山河风岩核心",
+            chiji: "破坏赤骥的双矢量推进器",
+            kuilong: "切断夔龙的双侧引雷翼",
           };
           this.showBanner(
             "BOSS 战",
@@ -56,6 +58,14 @@
       }
       if (boss.kind === "ridge") {
         this.updateRidgeBoss(dt);
+        return;
+      }
+      if (boss.kind === "chiji") {
+        this.updateChijiBoss(dt);
+        return;
+      }
+      if (boss.kind === "kuilong") {
+        this.updateKuilongBoss(dt);
         return;
       }
 
@@ -433,6 +443,149 @@
           this.createRockfall(random(55, WIDTH - 55), random(190, HEIGHT - 135));
         }
         boss.summonTimer = boss.phase === 3 ? 2.9 : 4.6;
+      }
+      if (boss.hp <= 0) this.destroyBoss();
+    },
+
+    updateChijiBoss(dt) {
+      const boss = this.boss;
+      if (!boss) return;
+      const ratio = boss.hp / boss.maxHp;
+      const nextPhase = ratio > 0.7 ? 1 : ratio > 0.35 ? 2 : 3;
+      if (nextPhase !== boss.phase) {
+        boss.phase = nextPhase;
+        boss.fireTimer = 0.2;
+        boss.summonTimer = 2;
+        this.screenFlash = 0.25;
+        this.shake = 9;
+        this.showBanner(
+          nextPhase === 2 ? "矢量推进器同步燃烧" : "逐日协议进入红线",
+          `赤骥进入第 ${nextPhase} 追击形态`,
+          2.2,
+        );
+      }
+      const speed = boss.phase === 3 ? 1.7 : boss.phase === 2 ? 1.22 : 0.88;
+      const range = boss.phase === 3 ? 164 : 136;
+      boss.x = WIDTH / 2 + Math.sin(boss.age * speed) * range;
+      boss.y = 140 + Math.sin(boss.age * 2.1) * 13;
+      boss.fireTimer -= dt;
+      boss.summonTimer -= dt;
+      const leftAlive = !boss.parts.find((part) => part.id === "left")?.destroyed;
+      const rightAlive = !boss.parts.find((part) => part.id === "right")?.destroyed;
+
+      if (boss.fireTimer <= 0) {
+        if (boss.phase === 1) {
+          if (leftAlive) this.fireFan(boss.x - 70, boss.y + 18, 4, 0.13, 168, "#ffb15d");
+          if (rightAlive) this.fireFan(boss.x + 70, boss.y + 18, 4, 0.13, 168, "#ff6b4f");
+          if (!leftAlive && !rightAlive) this.fireFan(boss.x, boss.y + 30, 5, 0.14, 158, "#ffc16c");
+          boss.fireTimer = 0.92;
+        } else if (boss.phase === 2) {
+          this.fireRadial(boss.x, boss.y, 16, 128, "#ff8b52", boss.patternStep * 0.17);
+          if (leftAlive) this.fireAimed(boss.x - 72, boss.y + 20, 192, "#ffd06a");
+          if (rightAlive) this.fireAimed(boss.x + 72, boss.y + 20, 192, "#ff8b58");
+          if (boss.patternStep % 3 === 0 && !this.sandFront) this.createSandFront(true);
+          boss.patternStep += 1;
+          boss.fireTimer = 0.72;
+        } else {
+          if (leftAlive) this.fireSpiral(boss.x - 66, boss.y + 14, boss.patternStep, "#ffce6a");
+          if (rightAlive) this.fireSpiral(boss.x + 66, boss.y + 14, -boss.patternStep, "#ff6650");
+          this.fireFan(boss.x, boss.y + 34, 7, 0.1, 188, "#fff0a0");
+          if (boss.patternStep % 4 === 0 && !this.sandFront) this.createSandFront(true);
+          boss.patternStep += 1;
+          boss.fireTimer = 0.38;
+        }
+      }
+
+      if (boss.summonTimer <= 0) {
+        if (boss.phase === 1) {
+          this.spawnEnemy("charger", clamp(this.player.x + random(-105, 105), 45, WIDTH - 45), -48, {
+            phase: boss.age,
+            hpScale: 0.95,
+          });
+        } else if (boss.phase === 2) {
+          this.spawnEnemy("guardian", clamp(boss.x, 55, WIDTH - 55), boss.y + 20, {
+            phase: boss.age,
+            hpScale: 0.9,
+          });
+        } else {
+          this.spawnEnemy("carrier", clamp(boss.x, 60, WIDTH - 60), boss.y + 18, {
+            phase: boss.age,
+            hpScale: 0.82,
+          });
+        }
+        boss.summonTimer = boss.phase === 3 ? 3.5 : 4.8;
+      }
+      if (boss.hp <= 0) this.destroyBoss();
+    },
+
+    updateKuilongBoss(dt) {
+      const boss = this.boss;
+      if (!boss) return;
+      const ratio = boss.hp / boss.maxHp;
+      const nextPhase = ratio > 0.7 ? 1 : ratio > 0.35 ? 2 : 3;
+      if (nextPhase !== boss.phase) {
+        boss.phase = nextPhase;
+        boss.fireTimer = 0.22;
+        boss.summonTimer = 1.9;
+        this.screenFlash = 0.3;
+        this.shake = 10;
+        this.showBanner(
+          nextPhase === 2 ? "双侧引雷翼并联" : "夔龙核心超临界",
+          `夔龙进入第 ${nextPhase} 雷暴形态`,
+          2.2,
+        );
+      }
+      boss.x =
+        WIDTH / 2 +
+        Math.sin(boss.age * (boss.phase === 3 ? 1.34 : 0.78)) *
+          (boss.phase === 3 ? 148 : 118);
+      boss.y = 142 + Math.sin(boss.age * 1.8) * 14;
+      boss.fireTimer -= dt;
+      boss.summonTimer -= dt;
+      const leftAlive = !boss.parts.find((part) => part.id === "left")?.destroyed;
+      const rightAlive = !boss.parts.find((part) => part.id === "right")?.destroyed;
+
+      if (boss.fireTimer <= 0) {
+        if (boss.phase === 1) {
+          this.fireRadial(boss.x, boss.y, 16, 126, "#c58aff", boss.patternStep * 0.18);
+          if (leftAlive) this.fireAimed(boss.x - 70, boss.y + 18, 184, "#8feeff");
+          if (rightAlive) this.fireAimed(boss.x + 70, boss.y + 18, 184, "#e2a6ff");
+          boss.patternStep += 1;
+          boss.fireTimer = 0.92;
+        } else if (boss.phase === 2) {
+          if (leftAlive) this.fireFan(boss.x - 68, boss.y + 20, 5, 0.12, 176, "#8aeaff");
+          if (rightAlive) this.fireFan(boss.x + 68, boss.y + 20, 5, 0.12, 176, "#c885ff");
+          if (boss.patternStep % 2 === 0 && this.stormSectors.length === 0) {
+            this.createStormSectors(1, true);
+          }
+          boss.patternStep += 1;
+          boss.fireTimer = 0.7;
+        } else {
+          this.fireSpiral(boss.x - 42, boss.y + 12, boss.patternStep, "#82efff");
+          this.fireSpiral(boss.x + 42, boss.y + 12, -boss.patternStep, "#d489ff");
+          if (boss.patternStep % 3 === 0 && this.stormSectors.length === 0) {
+            this.createStormSectors(2, true);
+          }
+          boss.patternStep += 1;
+          boss.fireTimer = 0.36;
+        }
+      }
+
+      if (boss.summonTimer <= 0) {
+        if (boss.phase === 1) {
+          this.spawnEnemy("medic", clamp(boss.x, 55, WIDTH - 55), boss.y + 16, {
+            phase: boss.age,
+            hpScale: 0.9,
+          });
+        } else if (boss.phase === 2) {
+          this.spawnEnemy("minelayer", clamp(boss.x, 58, WIDTH - 58), boss.y + 18, {
+            phase: boss.age,
+            hpScale: 0.9,
+          });
+        } else if (this.stormSectors.length === 0) {
+          this.createStormSectors(2, true);
+        }
+        boss.summonTimer = boss.phase === 3 ? 3.25 : 4.6;
       }
       if (boss.hp <= 0) this.destroyBoss();
     },

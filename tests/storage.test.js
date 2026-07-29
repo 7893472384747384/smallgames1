@@ -28,7 +28,7 @@ require("../src/services/storage.js");
 const migrated = window.FY.loadSave();
 assert.equal(migrated.schemaVersion, 3);
 assert.equal(migrated.selectedFighter, "pulse");
-assert.equal(migrated.unlockedLevel, 6);
+assert.equal(migrated.unlockedLevel, 8);
 assert.equal(migrated.sound, false);
 assert.deepEqual(migrated.bestRanks, { 1: "A", 6: "S" });
 
@@ -37,5 +37,11 @@ const persisted = JSON.parse(storedValue);
 assert.equal(persisted.schemaVersion, 3);
 assert.equal(persisted.selectedFighter, "bomber");
 assert.deepEqual(persisted.bestRanks, { 1: "A", 6: "S" });
+
+storedValue = JSON.stringify({
+  unlockedLevel: 6,
+  bestRanks: { 6: "A" },
+});
+assert.equal(window.FY.loadSave().unlockedLevel, 7);
 
 console.log("Save migration tests passed.");

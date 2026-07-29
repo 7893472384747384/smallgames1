@@ -11,7 +11,8 @@
       this.weather.label = label;
       this.weather.nextShift = 0;
       this.weather.nextLightning = type === "thunder" || type === "storm" ? 1.6 : 999;
-      this.weather.nextLock = type === "hunt" || type === "mirageBoss" ? 1.5 : 999;
+      this.weather.nextLock =
+        type === "hunt" || type === "mirageBoss" || type === "sectorHunt" ? 1.5 : 999;
       this.weather.nextCorridor =
         type === "corridor" || type === "reverseGale" || type === "galeBoss" ? 1.2 : 999;
       this.weather.nextGrid =
@@ -22,6 +23,17 @@
       this.weather.nextRock = ["rockfall", "mountainStorm", "ridgeBoss"].includes(type)
         ? 1.25
         : 999;
+      this.weather.nextSandFront = ["sandFront", "sandGale", "chijiBoss"].includes(type)
+        ? 1.25
+        : 999;
+      this.weather.nextStormSector = [
+        "stormSector",
+        "sectorHunt",
+        "sectorWind",
+        "kuilongBoss",
+      ].includes(type)
+        ? 1.2
+        : 999;
       if (
         type === "wind" ||
         type === "storm" ||
@@ -31,6 +43,9 @@
         type === "galeBoss"
         || type === "squall"
         || type === "mountainStorm"
+        || type === "sandGale"
+        || type === "sectorWind"
+        || type === "chijiBoss"
       ) {
         this.weather.targetWind = random(35, 58) * (Math.random() < 0.5 ? -1 : 1);
       } else {
@@ -47,6 +62,8 @@
       this.weather.nextGrid -= dt;
       this.weather.nextTide -= dt;
       this.weather.nextRock -= dt;
+      this.weather.nextSandFront -= dt;
+      this.weather.nextStormSector -= dt;
 
       if (
         this.weather.timer <= 0 &&
@@ -57,6 +74,8 @@
         this.weather.type !== "voltBoss"
         && this.weather.type !== "tideBoss"
         && this.weather.type !== "ridgeBoss"
+        && this.weather.type !== "chijiBoss"
+        && this.weather.type !== "kuilongBoss"
       ) {
         const calmWeather = {
           1: "高空晴朗",
@@ -65,6 +84,8 @@
           4: "电网待机",
           5: "远海长涌",
           6: "河谷清岚",
+          7: "沙海静流",
+          8: "峡谷雷息",
         };
         this.setWeather(
           "clear",
@@ -83,6 +104,9 @@
         this.weather.type === "galeBoss"
         || this.weather.type === "squall"
         || this.weather.type === "mountainStorm"
+        || this.weather.type === "sandGale"
+        || this.weather.type === "sectorWind"
+        || this.weather.type === "chijiBoss"
       ) {
         if (this.weather.nextShift <= 0) {
           const strength =
@@ -96,7 +120,7 @@
                     ? 46
                     : 58;
           this.weather.targetWind = random(strength * 0.6, strength) * (Math.random() < 0.5 ? -1 : 1);
-          const fastWind = ["jetstream", "towerWind", "reverseGale", "galeBoss"].includes(
+          const fastWind = ["jetstream", "towerWind", "reverseGale", "galeBoss", "sandGale", "sectorWind", "chijiBoss"].includes(
             this.weather.type,
           );
           this.weather.nextShift = fastWind ? random(2.1, 3.4) : random(3.5, 6.5);
@@ -121,7 +145,9 @@
       }
 
       if (
-        (this.weather.type === "hunt" || this.weather.type === "mirageBoss") &&
+        (this.weather.type === "hunt" ||
+          this.weather.type === "mirageBoss" ||
+          this.weather.type === "sectorHunt") &&
         this.weather.nextLock <= 0 &&
         !this.lockThreat
       ) {
@@ -187,11 +213,151 @@
           this.weather.type === "ridgeBoss" ? random(2, 2.7) : random(2.8, 3.8);
       }
 
+      if (
+        ["sandFront", "sandGale", "chijiBoss"].includes(this.weather.type) &&
+        this.weather.nextSandFront <= 0 &&
+        !this.sandFront
+      ) {
+        this.createSandFront(this.weather.type === "chijiBoss");
+        this.weather.nextSandFront =
+          this.weather.type === "chijiBoss" ? random(5.2, 6.2) : random(5.8, 7);
+      }
+
+      if (
+        ["stormSector", "sectorHunt", "sectorWind", "kuilongBoss"].includes(
+          this.weather.type,
+        ) &&
+        this.weather.nextStormSector <= 0 &&
+        this.stormSectors.length === 0
+      ) {
+        const bossControlled = this.weather.type === "kuilongBoss";
+        const count = bossControlled && this.boss?.phase === 3 ? 2 : 1;
+        this.createStormSectors(count, bossControlled);
+        this.weather.nextStormSector = bossControlled ? random(2.8, 3.5) : random(3.6, 4.5);
+      }
+
       this.updateLockThreat(dt);
       this.updateCorridorGate(dt);
       this.updateGridHazards(dt);
       this.updateTideSurges(dt);
       this.updateRockfalls(dt);
+      this.updateSandFront(dt);
+      this.updateStormSectors(dt);
+    },
+
+    createSandFront(bossControlled = false) {
+      this.sandFront = {
+        timer: 0,
+        strikeAt: 1.1,
+        riseEnd: 3.05,
+        holdEnd: 4.65,
+        duration: 6.45,
+        startY: HEIGHT + 26,
+        targetY: bossControlled ? 550 : random(505, 555),
+        edgeY: HEIGHT + 26,
+        playerHit: false,
+        affectedEnemies: new Set(),
+        retreatOffset: 0,
+        bossControlled,
+      };
+    },
+
+    updateSandFront(dt) {
+      const front = this.sandFront;
+      if (!front) return;
+      front.timer += dt;
+      if (front.timer < front.strikeAt) {
+        front.edgeY = front.startY;
+      } else if (front.timer < front.riseEnd) {
+        const progress = (front.timer - front.strikeAt) / (front.riseEnd - front.strikeAt);
+        front.edgeY = lerp(front.startY, front.targetY + front.retreatOffset, progress);
+      } else if (front.timer < front.holdEnd) {
+        front.edgeY = front.targetY + front.retreatOffset;
+      } else {
+        const progress = (front.timer - front.holdEnd) / (front.duration - front.holdEnd);
+        front.edgeY = lerp(front.targetY + front.retreatOffset, front.startY, progress);
+      }
+
+      if (front.timer >= front.strikeAt) {
+        if (!front.playerHit && this.player.y + this.player.radius > front.edgeY) {
+          front.playerHit = true;
+          this.hurtPlayer();
+          this.player.y = Math.max(70, front.edgeY - this.player.radius - 8);
+        }
+        for (const enemy of this.enemies) {
+          if (
+            enemy.y + enemy.radius > front.edgeY &&
+            !front.affectedEnemies.has(enemy)
+          ) {
+            front.affectedEnemies.add(enemy);
+            this.damageEnemy(enemy, 72, true);
+          }
+        }
+        this.enemyBullets = this.enemyBullets.filter((bullet) => bullet.y < front.edgeY + 14);
+      }
+      if (front.timer >= front.duration) this.sandFront = null;
+    },
+
+    createStormSectors(count = 1, bossControlled = false) {
+      let available = [0, 1, 2, 3];
+      if (bossControlled && this.boss?.parts) {
+        const leftAlive = !this.boss.parts.find((part) => part.id === "left")?.destroyed;
+        const rightAlive = !this.boss.parts.find((part) => part.id === "right")?.destroyed;
+        available = [
+          ...(leftAlive ? [0, 1] : []),
+          ...(rightAlive ? [2, 3] : []),
+        ];
+      }
+      const chosen = [];
+      while (available.length > 0 && chosen.length < count) {
+        const index = Math.floor(Math.random() * available.length);
+        chosen.push(available.splice(index, 1)[0]);
+      }
+      for (const sector of chosen) {
+        this.stormSectors.push({
+          sector,
+          x: sector * (WIDTH / 4),
+          width: WIDTH / 4,
+          timer: 0,
+          strikeAt: 1.05,
+          duration: 1.48,
+          struck: false,
+          bossControlled,
+        });
+      }
+    },
+
+    updateStormSectors(dt) {
+      for (const sector of this.stormSectors) {
+        sector.timer += dt;
+        if (!sector.struck && sector.timer >= sector.strikeAt) {
+          sector.struck = true;
+          const hit = (target) =>
+            target.x + target.radius > sector.x &&
+            target.x - target.radius < sector.x + sector.width;
+          if (hit(this.player)) this.hurtPlayer();
+          this.enemies.forEach((enemy) => {
+            if (hit(enemy)) this.damageEnemy(enemy, 66, true);
+          });
+          if (this.boss && !sector.bossControlled && hit(this.boss)) {
+            this.damageBoss(40);
+          }
+          this.audio.lightning();
+          this.screenFlash = Math.max(this.screenFlash, 0.2);
+          this.shake = Math.max(this.shake, 8);
+          for (let i = 0; i < 18; i += 1) {
+            this.spawnSpark(
+              random(sector.x + 8, sector.x + sector.width - 8),
+              random(55, HEIGHT - 35),
+              i % 2 ? "#d49aff" : "#dffcff",
+              1,
+            );
+          }
+        }
+      }
+      this.stormSectors = this.stormSectors.filter(
+        (sector) => sector.timer < sector.duration,
+      );
     },
 
     createTideSurge(y = clamp(this.player.y + random(-145, 85), 160, HEIGHT - 110)) {

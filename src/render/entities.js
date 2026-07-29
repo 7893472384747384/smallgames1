@@ -453,6 +453,8 @@
         volt: ["#72f1ff", "#e7f45c", "#fff78d"],
         tide: ["#6cf5ff", "#5db8ff", "#a8faff"],
         ridge: ["#a7e870", "#d5ad65", "#e8ff9b"],
+        chiji: ["#ffb35d", "#ff744f", "#fff09a"],
+        kuilong: ["#9aeaff", "#b27aff", "#f2d8ff"],
       };
       const glow = glowPalettes[boss.kind][boss.phase - 1];
       ctx.shadowBlur = boss.flash > 0 ? 34 : 18;
@@ -465,6 +467,8 @@
         volt: sprites.bossVolt,
         tide: sprites.bossTide,
         ridge: sprites.bossRidge,
+        chiji: sprites.bossChiji,
+        kuilong: sprites.bossKuilong,
       };
       const bossSprite = bossSprites[boss.kind];
       const spriteSizes = {
@@ -474,6 +478,8 @@
         volt: [218, 188],
         tide: [226, 178],
         ridge: [232, 184],
+        chiji: [238, 238],
+        kuilong: [244, 244],
       };
       const [spriteWidth, spriteHeight] = spriteSizes[boss.kind];
       if (bossSprite.complete && bossSprite.naturalWidth > 0) {
@@ -579,6 +585,33 @@
         ctx.lineTo(25, -18);
         ctx.lineTo(52, 9);
         ctx.stroke();
+      } else if (boss.kind === "chiji") {
+        [-72, 72].forEach((x, index) => {
+          ctx.beginPath();
+          ctx.moveTo(x, 6);
+          ctx.lineTo(x + Math.sin(boss.age * 8 + index) * 4, 37);
+          ctx.lineTo(x, 56);
+          ctx.stroke();
+        });
+        ctx.beginPath();
+        ctx.moveTo(0, -48);
+        ctx.lineTo(13, -9);
+        ctx.lineTo(0, 28);
+        ctx.lineTo(-13, -9);
+        ctx.closePath();
+        ctx.stroke();
+      } else if (boss.kind === "kuilong") {
+        ctx.beginPath();
+        ctx.arc(0, 0, 18 + Math.sin(boss.age * 5) * 3, boss.age, boss.age + Math.PI * 1.7);
+        ctx.stroke();
+        [-72, 72].forEach((x, index) => {
+          ctx.beginPath();
+          ctx.moveTo(x, -33);
+          ctx.lineTo(x + (index ? -8 : 8), -9);
+          ctx.lineTo(x + (index ? 7 : -7), 13);
+          ctx.lineTo(x, 38);
+          ctx.stroke();
+        });
       } else {
         ctx.beginPath();
         ctx.arc(0, -4, 22 + Math.sin(boss.age * 4) * 2.5, boss.age, boss.age + Math.PI * 1.55);

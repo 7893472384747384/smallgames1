@@ -219,6 +219,52 @@ assert.deepEqual(window.__FENGYUN_GAME__.snapshot().enemyTypes, {
 window.__FENGYUN_GAME__.advanceWorld(4.5);
 assert.ok(window.__FENGYUN_GAME__.snapshot().enemyTypes.scout >= 2);
 
+window.__FENGYUN_GAME__.startLevelSeven();
+frameCallback(performance.now() + 80);
+assert.equal(window.__FENGYUN_GAME__.snapshot().level, 7);
+assert.equal(window.__FENGYUN_GAME__.snapshot().environment, "sandstorm");
+window.__FENGYUN_GAME__.skipToBoss();
+assert.deepEqual(
+  {
+    kind: window.__FENGYUN_GAME__.snapshot().boss.kind,
+    hp: window.__FENGYUN_GAME__.snapshot().boss.hp,
+    weather: window.__FENGYUN_GAME__.snapshot().weather,
+  },
+  { kind: "chiji", hp: 4250, weather: "chijiBoss" },
+);
+window.__FENGYUN_GAME__.advanceWorld(3.2);
+assert.equal(window.__FENGYUN_GAME__.snapshot().hazards.sandFront, 1);
+const sandEdgeBeforePartBreak =
+  window.__FENGYUN_GAME__.snapshot().hazards.sandFrontEdgeY;
+window.__FENGYUN_GAME__.damageBossPart("left");
+assert.equal(window.__FENGYUN_GAME__.snapshot().boss.parts[0].destroyed, true);
+assert.ok(
+  window.__FENGYUN_GAME__.snapshot().hazards.sandFrontEdgeY >
+    sandEdgeBeforePartBreak,
+);
+
+window.__FENGYUN_GAME__.startLevelEight();
+frameCallback(performance.now() + 96);
+assert.equal(window.__FENGYUN_GAME__.snapshot().level, 8);
+assert.equal(window.__FENGYUN_GAME__.snapshot().environment, "thunderCanyon");
+window.__FENGYUN_GAME__.skipToBoss();
+assert.deepEqual(
+  {
+    kind: window.__FENGYUN_GAME__.snapshot().boss.kind,
+    hp: window.__FENGYUN_GAME__.snapshot().boss.hp,
+    weather: window.__FENGYUN_GAME__.snapshot().weather,
+  },
+  { kind: "kuilong", hp: 4700, weather: "kuilongBoss" },
+);
+window.__FENGYUN_GAME__.damageBossPart("left");
+window.__FENGYUN_GAME__.advanceWorld(1.4);
+assert.ok(window.__FENGYUN_GAME__.snapshot().hazards.stormSectors > 0);
+assert.ok(
+  window.__FENGYUN_GAME__.snapshot().hazards.stormSectorIndices.every(
+    (sector) => sector >= 2,
+  ),
+);
+
 window.__FENGYUN_GAME__.startEndless();
 assert.deepEqual(
   {
@@ -341,4 +387,4 @@ const bossHpBeforeBombing = window.__FENGYUN_GAME__.snapshot().boss.hp;
 window.__FENGYUN_GAME__.advanceWorld(2);
 assert.ok(window.__FENGYUN_GAME__.snapshot().boss.hp < bossHpBeforeBombing);
 
-console.log("Six-level campaign, endless mode, and four-fighter selection smoke tests passed.");
+console.log("Eight-level campaign, endless mode, and four-fighter selection smoke tests passed.");

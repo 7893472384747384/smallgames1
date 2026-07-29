@@ -12,6 +12,8 @@
       if (this.level === 4) return this.buildLevelFourWaves();
       if (this.level === 5) return this.buildLevelFiveWaves();
       if (this.level === 6) return this.buildLevelSixWaves();
+      if (this.level === 7) return this.buildLevelSevenWaves();
+      if (this.level === 8) return this.buildLevelEightWaves();
       return this.buildLevelOneWaves();
     },
 
@@ -294,6 +296,119 @@
       ];
     },
 
+    buildLevelSevenWaves() {
+      return [
+        { at: 0.5, run: () => this.showBanner("F-07 逆风突围", "赤色追击舰正在沙海上空逼近", 3.2) },
+        { at: 2.5, run: () => this.spawnScoutV(10) },
+        { at: 7, run: () => this.spawnChargers(5) },
+        {
+          at: 11,
+          run: () => {
+            this.setWeather("sandFront", 13, "沙暴前锋");
+            this.showBanner("沙墙推进", "保持在橙色沙暴边界上方，低空敌机也会受损", 3);
+          },
+        },
+        { at: 12, run: () => this.spawnSweepers(5) },
+        { at: 18, run: () => this.spawnEnemy("guardian", WIDTH / 2, -55, { phase: 0.7 }) },
+        { at: 21, run: () => this.spawnScoutColumns(true) },
+        {
+          at: 28,
+          run: () => {
+            this.setWeather("sandGale", 15, "赤砂横流");
+            this.showBanner("逆风加速", "横风与沙墙交替推进，预留向上的撤离路线", 2.9);
+          },
+        },
+        { at: 29, run: () => this.spawnChargers(6) },
+        { at: 35, run: () => this.spawnEnemy("carrier", WIDTH / 2, -70, { phase: 1.4 }) },
+        { at: 39, run: () => this.spawnSweepers(6) },
+        {
+          at: 47,
+          run: () => {
+            this.setWeather("sandFront", 13, "遗迹沙崩");
+            this.spawnMixedWave();
+          },
+        },
+        { at: 53, run: () => this.spawnChargers(6) },
+        { at: 58, run: () => this.spawnEnemy("minelayer", WIDTH / 2, -65, { phase: 2.2 }) },
+        {
+          at: 64,
+          run: () => {
+            this.setWeather("eye", 6, "沙眼静默");
+            this.showBanner("沙眼开启", "沙墙暂退，清理残敌并准备追击战", 2.8);
+            this.enemyBullets.forEach((bullet) => {
+              bullet.vx *= 0.55;
+              bullet.vy *= 0.55;
+            });
+          },
+        },
+        {
+          at: 70,
+          run: () => {
+            this.setWeather("chijiBoss", 999, "赤砂追击");
+            this.spawnBoss("chiji");
+          },
+        },
+      ];
+    },
+
+    buildLevelEightWaves() {
+      return [
+        { at: 0.5, run: () => this.showBanner("F-08 雷暴核心", "四区引雷阵列正在峡谷中充能", 3.2) },
+        { at: 2.5, run: () => this.spawnScoutColumns(true) },
+        { at: 7, run: () => this.spawnSweepers(5) },
+        {
+          at: 10,
+          run: () => {
+            this.setWeather("stormSector", 14, "雷暴扇区");
+            this.showBanner("扇区充能", "紫色区域将在预警结束后放电，敌我均会受伤", 3);
+          },
+        },
+        { at: 12, run: () => this.spawnChargers(5) },
+        { at: 18, run: () => this.spawnEnemy("medic", WIDTH / 2, -60, { phase: 0.5 }) },
+        { at: 22, run: () => this.spawnScoutV(11) },
+        {
+          at: 27,
+          run: () => {
+            this.setWeather("sectorHunt", 15, "追猎雷区");
+            this.showBanner("复合警报", "先避开追猎准星，再进入未充能扇区", 3);
+          },
+        },
+        { at: 28, run: () => this.spawnSweepers(6) },
+        { at: 34, run: () => this.spawnEnemy("guardian", 145, -60, { phase: 1.1 }) },
+        { at: 34.5, run: () => this.spawnEnemy("medic", WIDTH - 145, -85, { phase: 1.8 }) },
+        { at: 40, run: () => this.spawnChargers(6) },
+        {
+          at: 45,
+          run: () => {
+            this.setWeather("sectorWind", 15, "峡谷雷流");
+            this.showBanner("雷流换向", "横风只改变位置，扇区预警仍是最高优先级", 2.9);
+            this.spawnMixedWave();
+          },
+        },
+        { at: 51, run: () => this.spawnEnemy("minelayer", 125, -65, { phase: 2.1 }) },
+        { at: 51.5, run: () => this.spawnEnemy("carrier", WIDTH - 125, -90, { phase: 2.8 }) },
+        { at: 58, run: () => this.spawnScoutColumns(true) },
+        {
+          at: 68,
+          run: () => {
+            this.setWeather("eye", 7, "雷眼静默");
+            this.showBanner("雷眼开启", "引雷阵列短暂停机，准备进入核心区域", 3);
+            this.enemyBullets.forEach((bullet) => {
+              bullet.vx *= 0.48;
+              bullet.vy *= 0.48;
+            });
+          },
+        },
+        {
+          at: 75,
+          run: () => {
+            this.setWeather("kuilongBoss", 999, "雷暴核心");
+            this.spawnBoss("kuilong");
+          },
+        },
+      ];
+    },
+
     updateEndlessDirector() {
       if (this.mode !== "endless") return;
       const pressure = Math.floor(this.time / 30) + 1;
@@ -475,6 +590,8 @@
         volt: ["voltBoss", "裁决电网"],
         tide: ["tideBoss", "玄潮共振"],
         ridge: ["ridgeBoss", "山河封锁"],
+        chiji: ["chijiBoss", "赤砂追击"],
+        kuilong: ["kuilongBoss", "雷暴核心"],
       }[kind];
       this.setWeather(weather[0], 999, weather[1]);
       this.spawnBoss(kind);
@@ -491,6 +608,10 @@
         mirage: "蜃影",
         gale: "罡虎机",
         volt: "雷狱",
+        tide: "玄鲸",
+        ridge: "岚蛟",
+        chiji: "赤骥",
+        kuilong: "夔龙",
       }[kind];
       this.showBanner(
         `无尽 BOSS · ${bossName}`,
@@ -591,7 +712,7 @@
     },
 
     spawnBoss(
-      kind = { 1: "yubo", 2: "mirage", 3: "gale", 4: "volt", 5: "tide", 6: "ridge" }[
+      kind = { 1: "yubo", 2: "mirage", 3: "gale", 4: "volt", 5: "tide", 6: "ridge", 7: "chiji", 8: "kuilong" }[
         this.level
       ],
     ) {
@@ -640,6 +761,24 @@
           intro: "山河要塞解除岩层伪装",
           name: "山河要塞 · 岚蛟",
         },
+        chiji: {
+          radius: 74,
+          hp: 4250,
+          summonTimer: 3.9,
+          intro: "赤色追击舰突破沙暴前锋",
+          name: "逐日追击舰 · 赤骥",
+          partOffset: 79,
+          partLabels: ["左矢量推进器", "右矢量推进器"],
+        },
+        kuilong: {
+          radius: 76,
+          hp: 4700,
+          summonTimer: 3.8,
+          intro: "雷暴核心舰完成峡谷同步",
+          name: "雷暴核心舰 · 夔龙",
+          partOffset: 76,
+          partLabels: ["左引雷翼", "右引雷翼"],
+        },
       }[kind];
       this.boss = {
         kind,
@@ -658,8 +797,8 @@
         parts: [
           {
             id: "left",
-            label: "左武装",
-            xOffset: -stats.radius * 0.68,
+            label: stats.partLabels?.[0] || "左武装",
+            xOffset: -(stats.partOffset || stats.radius * 0.68),
             yOffset: 8,
             radius: 15,
             hp: Math.round(stats.hp * 0.085),
@@ -669,8 +808,8 @@
           },
           {
             id: "right",
-            label: "右武装",
-            xOffset: stats.radius * 0.68,
+            label: stats.partLabels?.[1] || "右武装",
+            xOffset: stats.partOffset || stats.radius * 0.68,
             yOffset: 8,
             radius: 15,
             hp: Math.round(stats.hp * 0.085),

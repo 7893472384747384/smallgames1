@@ -51,11 +51,9 @@
       for (const [fighterId, button] of Object.entries(ui.fighterButtons)) {
         button.addEventListener("click", () => this.selectFighter(fighterId));
       }
-      ui.secondLevelButton.addEventListener("click", () => this.start(2));
-      ui.thirdLevelButton.addEventListener("click", () => this.start(3));
-      ui.fourthLevelButton.addEventListener("click", () => this.start(4));
-      ui.fifthLevelButton.addEventListener("click", () => this.start(5));
-      ui.sixthLevelButton.addEventListener("click", () => this.start(6));
+      for (const [level, button] of Object.entries(ui.levelButtons)) {
+        button.addEventListener("click", () => this.start(Number(level)));
+      }
       ui.replayButton.addEventListener("click", () => this.handleResultAction());
       ui.returnToHangarButton.addEventListener("click", () => this.returnToHangar());
       ui.resumeButton.addEventListener("click", () => this.resume());
@@ -89,6 +87,8 @@
         ui.debugLevelFourButton.addEventListener("click", () => this.start(4));
         ui.debugLevelFiveButton.addEventListener("click", () => this.start(5));
         ui.debugLevelSixButton.addEventListener("click", () => this.start(6));
+        ui.debugLevelSevenButton.addEventListener("click", () => this.start(7));
+        ui.debugLevelEightButton.addEventListener("click", () => this.start(8));
         ui.debugBossButton.addEventListener("click", () => this.debugSkipToBoss());
         ui.debugDamageButton.addEventListener("click", () => {
           if (this.boss) this.boss.hp -= 740;
@@ -175,6 +175,8 @@
       this.gridHazards = [];
       this.tideSurges = [];
       this.rockfalls = [];
+      this.sandFront = null;
+      this.stormSectors = [];
       this.airstrikes = [];
       this.pickupNotice = null;
       this.runStats = {
@@ -203,6 +205,8 @@
         4: "电网待机",
         5: "远海长涌",
         6: "河谷清岚",
+        7: "沙海静流",
+        8: "峡谷雷息",
       };
       this.weather = {
         label: this.mode === "endless" ? "风暴边缘" : calmWeather[this.level],
@@ -217,6 +221,8 @@
         nextGrid: 999,
         nextTide: 999,
         nextRock: 999,
+        nextSandFront: 999,
+        nextStormSector: 999,
       };
       this.player = {
         x: WIDTH / 2,
@@ -405,24 +411,15 @@
       ui.soundButton.textContent = this.save.sound ? "声" : "静";
       ui.soundButton.setAttribute("aria-label", this.save.sound ? "关闭声音" : "开启声音");
       ui.shieldValueToggle.checked = this.save.showShieldValue;
-      ui.secondLevelButton.hidden = this.save.unlockedLevel < 2;
-      ui.thirdLevelButton.hidden = this.save.unlockedLevel < 3;
-      ui.fourthLevelButton.hidden = this.save.unlockedLevel < 4;
-      ui.fifthLevelButton.hidden = this.save.unlockedLevel < 5;
-      ui.sixthLevelButton.hidden = this.save.unlockedLevel < 6;
-      [
-        ui.secondLevelButton,
-        ui.thirdLevelButton,
-        ui.fourthLevelButton,
-        ui.fifthLevelButton,
-        ui.sixthLevelButton,
-      ].forEach((button, index) => {
-        const level = index + 2;
+      const numerals = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+      for (const [levelKey, button] of Object.entries(ui.levelButtons)) {
+        const level = Number(levelKey);
+        button.hidden = this.save.unlockedLevel < level;
         const rank = this.save.bestRanks[level];
-        button.textContent = `第${["二", "三", "四", "五", "六"][index]}关${
+        button.textContent = `第${numerals[level] || level}关${
           rank ? ` · ${rank}` : ""
         }`;
-      });
+      }
     }
 
     showBanner(title, subtitle = "", duration = 2.5) {
@@ -856,7 +853,9 @@
         3: "风塔叶阵恢复同步。第四航路“电网边境”已经开放。",
         4: "裁决回路已经切断。第五航路“怒海孤航”已经开放。",
         5: "玄鲸沉入深海。第六航路“山河险渡”已经开放。",
-        6: "岚蛟核心停止运转，山河航道重归平静。第二章前两关完成。",
+        6: "岚蛟核心停止运转。第七航路“逆风突围”已经开放。",
+        7: "赤骥失去推进力。第八航路“雷暴核心”已经开放。",
+        8: "夔龙核心停止放电，雷鸣峡谷重归平静。第二章前四关完成。",
       };
       const failureMessages = {
         1: "调整飞行路线，利用雷击摧毁敌机后再次出击。",
@@ -865,14 +864,16 @@
         4: "预判横纵预警线，并把敌机引入即将放电的网格。",
         5: "观察横向涌浪的预警带，提前飞出浪峰覆盖范围。",
         6: "落石标记锁定后不再追踪，持续移动即可避开冲击区。",
+        7: "保持在沙暴前锋上方，并利用沙墙削弱低空敌机。",
+        8: "识别紫色充能扇区，每轮放电后再调整下一处安全位置。",
       };
       ui.resultMessage.textContent = victory
         ? `${victoryMessages[this.level]} ${rating.summary}`
         : failureMessages[this.level];
       ui.replayButton.textContent = victory
         ? this.level < MAX_LEVEL
-          ? `进入第${["", "一", "二", "三", "四", "五", "六"][this.level + 1]}关`
-          : "再次挑战第六关"
+          ? `进入第${["", "一", "二", "三", "四", "五", "六", "七", "八"][this.level + 1]}关`
+          : "再次挑战第八关"
         : "重新挑战本关";
       setTimeout(() => ui.resultPanel.classList.add("visible"), victory ? 900 : 350);
       if (victory) this.audio.victory();
@@ -910,6 +911,8 @@
         this.drawGridHazards();
         this.drawTideSurges();
         this.drawRockfalls();
+        this.drawSandFront();
+        this.drawStormSectors();
         this.drawAirstrikes();
         this.drawParticles();
         this.drawPlayerLaser();
@@ -1028,6 +1031,10 @@
         hazards: {
           tideSurges: this.tideSurges.length,
           rockfalls: this.rockfalls.length,
+          sandFront: this.sandFront ? 1 : 0,
+          sandFrontEdgeY: this.sandFront ? Number(this.sandFront.edgeY.toFixed(1)) : null,
+          stormSectors: this.stormSectors.length,
+          stormSectorIndices: this.stormSectors.map((sector) => sector.sector),
         },
         endless:
           this.mode === "endless"
@@ -1059,7 +1066,7 @@
         return;
       }
       if (this.state !== "playing") this.start(this.level);
-      const times = { 1: 68, 2: 57, 3: 58, 4: 58, 5: 65, 6: 67 };
+      const times = { 1: 68, 2: 57, 3: 58, 4: 58, 5: 65, 6: 67, 7: 70, 8: 75 };
       const bossWeather = {
         1: ["boss", "超胞雷暴", "yubo"],
         2: ["mirageBoss", "蜃影云场", "mirage"],
@@ -1067,6 +1074,8 @@
         4: ["voltBoss", "裁决电网", "volt"],
         5: ["tideBoss", "玄潮共振", "tide"],
         6: ["ridgeBoss", "山河封锁", "ridge"],
+        7: ["chijiBoss", "赤砂追击", "chiji"],
+        8: ["kuilongBoss", "雷暴核心", "kuilong"],
       };
       this.time = times[this.level];
       this.waveIndex = this.waves.length;

@@ -211,7 +211,29 @@
       this.score += 900;
       this.boss.hp -= this.boss.maxHp * 0.04;
       this.shake = Math.max(this.shake, 9);
-      this.showBanner(`${part.label}已破坏`, "BOSS攻击与召唤频率下降", 1.8);
+      let effectMessage = "BOSS攻击与召唤频率下降";
+      if (this.boss.kind === "chiji") {
+        effectMessage = "对应冲刺火力停止，沙暴前锋后退";
+        if (this.sandFront) {
+          this.sandFront.retreatOffset = Math.min(
+            110,
+            this.sandFront.retreatOffset + 55,
+          );
+          this.sandFront.edgeY = Math.min(
+            this.sandFront.startY,
+            this.sandFront.edgeY + 55,
+          );
+        }
+      } else if (this.boss.kind === "kuilong") {
+        effectMessage =
+          part.id === "left" ? "左半场引雷权限已切断" : "右半场引雷权限已切断";
+        const disabledSectors = part.id === "left" ? [0, 1] : [2, 3];
+        this.stormSectors = this.stormSectors.filter(
+          (sector) =>
+            !sector.bossControlled || !disabledSectors.includes(sector.sector),
+        );
+      }
+      this.showBanner(`${part.label}已破坏`, effectMessage, 1.8);
       for (let i = 0; i < 28; i += 1) {
         this.spawnSpark(position.x, position.y, i % 2 ? "#ffb25f" : "#9defff", 1);
       }
