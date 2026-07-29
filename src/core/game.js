@@ -2,7 +2,7 @@
   "use strict";
 
   const FY = window.FY;
-  const { WIDTH, HEIGHT, TAU, STORAGE_KEY, ENVIRONMENTS, LEVELS, ENDLESS_ENVIRONMENTS, ENDLESS_BOSSES, FIGHTERS, BALANCE, canvas, ctx, sprites, ui, clamp, lerp, random, distanceSquared, formatScore, formatTime, saveData, loadSave, SynthAudio } = FY;
+  const { WIDTH, HEIGHT, TAU, STORAGE_KEY, ENVIRONMENTS, LEVELS, ENDLESS_ENVIRONMENTS, ENDLESS_BOSSES, FIGHTERS, BALANCE, GROWTH, CAMPAIGN_DIFFICULTY, canvas, ctx, sprites, ui, clamp, lerp, random, distanceSquared, formatScore, formatTime, saveData, loadSave, createEmptyGrowth, getEarnedGrowthPoints, normalizeGrowth, SynthAudio } = FY;
   const MAX_LEVEL = Object.keys(LEVELS).length;
 
   class Game {
@@ -54,6 +54,10 @@
       for (const [level, button] of Object.entries(ui.levelButtons)) {
         button.addEventListener("click", () => this.start(Number(level)));
       }
+      for (const [attributeId, button] of Object.entries(ui.growthButtons)) {
+        button.addEventListener("click", () => this.allocateGrowth(attributeId));
+      }
+      ui.growthResetButton.addEventListener("click", () => this.resetGrowth());
       ui.replayButton.addEventListener("click", () => this.handleResultAction());
       ui.returnToHangarButton.addEventListener("click", () => this.returnToHangar());
       ui.resumeButton.addEventListener("click", () => this.resume());
@@ -224,12 +228,14 @@
         nextSandFront: 999,
         nextStormSector: 999,
       };
+      const growth = this.getGrowthBonuses();
       this.player = {
         x: WIDTH / 2,
         y: HEIGHT - 115,
         radius: 9,
         speed: 280,
-        shield: 100,
+        maxShield: growth.maxShield,
+        shield: growth.maxShield,
         hull: 3,
         energy: 0,
         fireTimer: 0,
@@ -252,10 +258,11 @@
         bombTimer: 0.55,
         bombInterval: BALANCE.bomber.interval,
         tilt: 0,
-        damageScale: 1,
-        shieldRegenScale: 1,
-        speedScale: 1,
-        grazeEnergyScale: 1,
+        damageScale: growth.damageScale,
+        shieldRegenScale: growth.shieldRegenScale,
+        speedScale: growth.speedScale,
+        grazeEnergyScale: growth.energyGainScale,
+        energyGainScale: growth.energyGainScale,
         magnetScale: 1,
         amplifierDurationBonus: 0,
       };
@@ -293,6 +300,59 @@
       this.save.selectedFighter = fighterId;
       saveData(this.save);
       this.updatePersistentUI();
+    }
+
+    getGrowthState() {
+      const earned = getEarnedGrowthPoints(this.save.bestRanks);
+      this.save.growth = normalizeGrowth(this.save.growth, earned);
+      const spent = Object.values(this.save.growth).reduce(
+        (total, rank) => total + rank,
+        0,
+      );
+      return {
+        earned,
+        spent,
+        available: Math.max(0, earned - spent),
+        allocations: { ...this.save.growth },
+      };
+    }
+
+    getGrowthBonuses() {
+      const allocations = this.getGrowthState().allocations;
+      return {
+        damageScale: 1 + allocations.damage * GROWTH.attributes.damage.perPoint,
+        maxShield: 100 + allocations.shield * GROWTH.attributes.shield.perPoint,
+        shieldRegenScale: 1 + allocations.regen * GROWTH.attributes.regen.perPoint,
+        speedScale: 1 + allocations.speed * GROWTH.attributes.speed.perPoint,
+        energyGainScale: 1 + allocations.energy * GROWTH.attributes.energy.perPoint,
+      };
+    }
+
+    allocateGrowth(attributeId) {
+      if (this.state !== "menu" || !GROWTH.attributes[attributeId]) return false;
+      const growth = this.getGrowthState();
+      if (
+        growth.available <= 0 ||
+        growth.allocations[attributeId] >= GROWTH.maxRank
+      ) {
+        return false;
+      }
+      this.save.growth[attributeId] += 1;
+      saveData(this.save);
+      this.resetWorld();
+      this.updatePersistentUI();
+      return true;
+    }
+
+    resetGrowth() {
+      if (this.state !== "menu") return false;
+      const growth = this.getGrowthState();
+      if (growth.spent <= 0) return false;
+      this.save.growth = createEmptyGrowth();
+      saveData(this.save);
+      this.resetWorld();
+      this.updatePersistentUI();
+      return true;
     }
 
     startEndless() {
@@ -420,6 +480,17 @@
           rank ? ` · ${rank}` : ""
         }`;
       }
+      const growth = this.getGrowthState();
+      ui.growthAvailable.textContent = String(growth.available);
+      ui.growthSummary.textContent =
+        `已获得 ${growth.earned}/8 点 · 已分配 ${growth.spent} 点 · 可随时免费重置`;
+      for (const [attributeId, rankLabel] of Object.entries(ui.growthRanks)) {
+        const rank = growth.allocations[attributeId];
+        rankLabel.textContent = `${rank}/${GROWTH.maxRank}`;
+        ui.growthButtons[attributeId].disabled =
+          growth.available <= 0 || rank >= GROWTH.maxRank;
+      }
+      ui.growthResetButton.disabled = growth.spent <= 0;
     }
 
     showBanner(title, subtitle = "", duration = 2.5) {
@@ -561,8 +632,11 @@
       player.burstTimer = Math.max(0, player.burstTimer - dt);
       player.overdriveTimer = Math.max(0, player.overdriveTimer - dt);
       player.amplifierTimer = Math.max(0, player.amplifierTimer - dt);
-      if (player.sinceHit > 3.8 && player.shield < 100) {
-        player.shield = Math.min(100, player.shield + dt * 8 * player.shieldRegenScale);
+      if (player.sinceHit > 3.8 && player.shield < player.maxShield) {
+        player.shield = Math.min(
+          player.maxShield,
+          player.shield + dt * 8 * player.shieldRegenScale,
+        );
       }
 
       let dx = 0;
@@ -579,7 +653,7 @@
         this.pointerTarget.x = player.x;
         this.pointerTarget.y = player.y;
       } else if (this.pointerActive) {
-        const follow = 1 - Math.exp(-dt * 16);
+        const follow = 1 - Math.exp(-dt * 16 * player.speedScale);
         player.x = lerp(player.x, this.pointerTarget.x, follow);
         player.y = lerp(player.y, this.pointerTarget.y, follow);
       }
@@ -819,6 +893,7 @@
       }
       this.state = victory ? "victory" : "gameover";
       const rating = victory ? this.calculateCampaignRating() : null;
+      const firstClear = Boolean(victory && !this.save.bestRanks[this.level]);
       if (victory) {
         this.save.unlockedLevel = Math.max(
           this.save.unlockedLevel,
@@ -868,7 +943,9 @@
         8: "识别紫色充能扇区，每轮放电后再调整下一处安全位置。",
       };
       ui.resultMessage.textContent = victory
-        ? `${victoryMessages[this.level]} ${rating.summary}`
+        ? `${victoryMessages[this.level]} ${rating.summary}${
+            firstClear ? " · 首次通关获得共享成长点 ×1" : ""
+          }`
         : failureMessages[this.level];
       ui.replayButton.textContent = victory
         ? this.level < MAX_LEVEL
@@ -992,6 +1069,7 @@
         player: {
           hull: this.player.hull,
           shield: Math.round(this.player.shield),
+          maxShield: this.player.maxShield,
           energy: Math.round(this.player.energy),
           overdrive: Number(this.player.overdriveTimer.toFixed(1)),
           amplifierCharges: this.player.amplifierCharges,
@@ -1012,6 +1090,12 @@
           detonated: this.airstrikes.filter((strike) => strike.struck).length,
         },
         showShieldValue: this.save.showShieldValue,
+        growth: {
+          ...this.getGrowthState(),
+          bonuses: this.getGrowthBonuses(),
+        },
+        campaignDifficulty:
+          this.mode === "campaign" ? { ...CAMPAIGN_DIFFICULTY[this.level] } : null,
         environment: this.environment,
         boss: this.boss
           ? {
@@ -1060,7 +1144,7 @@
         this.enemyBullets.length = 0;
         this.endless.nextBoss = this.time;
         this.updateEndlessDirector();
-        this.player.shield = 100;
+        this.player.shield = this.player.maxShield;
         this.player.hull = 3;
         this.player.energy = 100;
         return;
@@ -1083,7 +1167,7 @@
       this.enemyBullets.length = 0;
       this.setWeather(bossWeather[this.level][0], 999, bossWeather[this.level][1]);
       this.spawnBoss(bossWeather[this.level][2]);
-      this.player.shield = 100;
+      this.player.shield = this.player.maxShield;
       this.player.hull = 3;
       this.player.energy = 100;
     }

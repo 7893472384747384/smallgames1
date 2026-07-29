@@ -40,7 +40,14 @@
       ctx.font = "700 8px 'Microsoft YaHei UI', sans-serif";
       ctx.fillText("护盾", 23, HEIGHT - 56);
       ctx.fillText("气象能量", 23, HEIGHT - 33);
-      this.drawBar(76, HEIGHT - 60, 133, 8, this.player.shield / 100, "#5ce4ff");
+      this.drawBar(
+        76,
+        HEIGHT - 60,
+        133,
+        8,
+        this.player.shield / this.player.maxShield,
+        "#5ce4ff",
+      );
       this.drawBar(76, HEIGHT - 37, 133, 8, this.player.energy / 100, "#ffd365");
       if (this.save.showShieldValue) {
         ctx.save();
@@ -49,7 +56,11 @@
         ctx.shadowBlur = 5;
         ctx.shadowColor = "#1bbfdc";
         ctx.font = "800 7px Consolas, monospace";
-        ctx.fillText(`${Math.ceil(this.player.shield)} / 100`, 142.5, HEIGHT - 56);
+        ctx.fillText(
+          `${Math.ceil(this.player.shield)} / ${this.player.maxShield}`,
+          142.5,
+          HEIGHT - 56,
+        );
         ctx.restore();
       }
       if (this.fighterId === "laser") {

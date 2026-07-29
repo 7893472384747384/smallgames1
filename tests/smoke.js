@@ -108,6 +108,28 @@ require("../src/render/hud.js");
 require("../src/core/game.js");
 require("../src/main.js");
 
+window.__FENGYUN_GAME__.setGrowthTestProgress([1, 2, 3, 4]);
+assert.equal(window.__FENGYUN_GAME__.snapshot().growth.available, 4);
+window.__FENGYUN_GAME__.allocateGrowth("damage");
+window.__FENGYUN_GAME__.allocateGrowth("shield");
+window.__FENGYUN_GAME__.allocateGrowth("regen");
+window.__FENGYUN_GAME__.allocateGrowth("speed");
+assert.deepEqual(window.__FENGYUN_GAME__.snapshot().growth.allocations, {
+  damage: 1,
+  shield: 1,
+  regen: 1,
+  speed: 1,
+  energy: 0,
+});
+assert.equal(window.__FENGYUN_GAME__.snapshot().growth.available, 0);
+assert.equal(window.__FENGYUN_GAME__.snapshot().player.maxShield, 108);
+assert.equal(window.__FENGYUN_GAME__.snapshot().growth.bonuses.damageScale, 1.04);
+window.__FENGYUN_GAME__.resetGrowth();
+assert.equal(window.__FENGYUN_GAME__.snapshot().growth.available, 4);
+assert.equal(window.__FENGYUN_GAME__.snapshot().player.maxShield, 100);
+window.__FENGYUN_GAME__.allocateGrowth("damage");
+window.__FENGYUN_GAME__.allocateGrowth("shield");
+
 window.__FENGYUN_GAME__.selectFighter("laser");
 assert.equal(window.__FENGYUN_GAME__.snapshot().fighter.id, "laser");
 assert.equal(JSON.parse(storedSave).selectedFighter, "laser");
@@ -149,7 +171,7 @@ assert.deepEqual(
     hp: window.__FENGYUN_GAME__.snapshot().boss.hp,
     weather: window.__FENGYUN_GAME__.snapshot().weather,
   },
-  { kind: "gale", hp: 2900, weather: "galeBoss" },
+  { kind: "gale", hp: 3016, weather: "galeBoss" },
 );
 
 window.__FENGYUN_GAME__.startLevelFour();
@@ -163,7 +185,7 @@ assert.deepEqual(
     hp: window.__FENGYUN_GAME__.snapshot().boss.hp,
     weather: window.__FENGYUN_GAME__.snapshot().weather,
   },
-  { kind: "volt", hp: 3200, weather: "voltBoss" },
+  { kind: "volt", hp: 3392, weather: "voltBoss" },
 );
 
 window.__FENGYUN_GAME__.startLevelFive();
@@ -177,7 +199,7 @@ assert.deepEqual(
     hp: window.__FENGYUN_GAME__.snapshot().boss.hp,
     weather: window.__FENGYUN_GAME__.snapshot().weather,
   },
-  { kind: "tide", hp: 3550, weather: "tideBoss" },
+  { kind: "tide", hp: 3834, weather: "tideBoss" },
 );
 window.__FENGYUN_GAME__.advanceWorld(1.4);
 assert.ok(window.__FENGYUN_GAME__.snapshot().hazards.tideSurges > 0);
@@ -193,7 +215,7 @@ assert.deepEqual(
     hp: window.__FENGYUN_GAME__.snapshot().boss.hp,
     weather: window.__FENGYUN_GAME__.snapshot().weather,
   },
-  { kind: "ridge", hp: 3900, weather: "ridgeBoss" },
+  { kind: "ridge", hp: 4290, weather: "ridgeBoss" },
 );
 window.__FENGYUN_GAME__.advanceWorld(1.35);
 assert.ok(window.__FENGYUN_GAME__.snapshot().hazards.rockfalls > 0);
@@ -230,7 +252,7 @@ assert.deepEqual(
     hp: window.__FENGYUN_GAME__.snapshot().boss.hp,
     weather: window.__FENGYUN_GAME__.snapshot().weather,
   },
-  { kind: "chiji", hp: 4250, weather: "chijiBoss" },
+  { kind: "chiji", hp: 4718, weather: "chijiBoss" },
 );
 window.__FENGYUN_GAME__.advanceWorld(3.2);
 assert.equal(window.__FENGYUN_GAME__.snapshot().hazards.sandFront, 1);
@@ -254,7 +276,7 @@ assert.deepEqual(
     hp: window.__FENGYUN_GAME__.snapshot().boss.hp,
     weather: window.__FENGYUN_GAME__.snapshot().weather,
   },
-  { kind: "kuilong", hp: 4700, weather: "kuilongBoss" },
+  { kind: "kuilong", hp: 5264, weather: "kuilongBoss" },
 );
 window.__FENGYUN_GAME__.damageBossPart("left");
 window.__FENGYUN_GAME__.advanceWorld(1.4);

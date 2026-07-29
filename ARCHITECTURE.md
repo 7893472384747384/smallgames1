@@ -39,7 +39,7 @@
 
 ## 存档兼容
 
-存档继续使用键 `fengyun-fighter-save-v1`，数据中新增 `schemaVersion`。当前版本为 `3`；以后改变字段结构时，应在 `services/storage.js` 中迁移旧数据，不直接丢弃玩家记录。
+存档继续使用键 `fengyun-fighter-save-v1`，数据中包含 `schemaVersion`。当前版本为 `4`，新增 `growth` 共享成长分配；旧存档会根据合法的 `bestRanks` 自动计算已获得点数并补齐零值配置。以后改变字段结构时，应在 `services/storage.js` 中迁移旧数据，不直接丢弃玩家记录。
 
 ## 验证
 

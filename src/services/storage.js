@@ -2,8 +2,42 @@
   "use strict";
 
   const FY = window.FY;
-  const { STORAGE_KEY, FIGHTERS, LEVELS, clamp } = FY;
-  const SAVE_SCHEMA_VERSION = 3;
+  const { STORAGE_KEY, FIGHTERS, LEVELS, GROWTH, clamp } = FY;
+  const SAVE_SCHEMA_VERSION = 4;
+  const RANKS = new Set(["C", "B", "A", "S"]);
+
+  function getEarnedGrowthPoints(bestRanks = {}) {
+    return Object.entries(bestRanks).filter(
+      ([level, rank]) => LEVELS[Number(level)] && RANKS.has(rank),
+    ).length;
+  }
+
+  function createEmptyGrowth() {
+    return Object.fromEntries(Object.keys(GROWTH.attributes).map((id) => [id, 0]));
+  }
+
+  function normalizeGrowth(rawGrowth, earnedPoints) {
+    const growth = createEmptyGrowth();
+    if (rawGrowth && typeof rawGrowth === "object") {
+      for (const id of Object.keys(growth)) {
+        growth[id] = clamp(
+          Math.floor(Number(rawGrowth[id]) || 0),
+          0,
+          GROWTH.maxRank,
+        );
+      }
+    }
+    let overflow =
+      Object.values(growth).reduce((total, rank) => total + rank, 0) -
+      Math.max(0, Math.floor(Number(earnedPoints) || 0));
+    for (const id of Object.keys(growth).reverse()) {
+      if (overflow <= 0) break;
+      const removed = Math.min(growth[id], overflow);
+      growth[id] -= removed;
+      overflow -= removed;
+    }
+    return growth;
+  }
 
   function loadSave() {
     try {
@@ -20,12 +54,17 @@
           unlockedLevel = Math.max(unlockedLevel, completedLevel + 1);
         }
       }
+      const growth = normalizeGrowth(
+        data.growth,
+        getEarnedGrowthPoints(bestRanks),
+      );
       return {
         schemaVersion: SAVE_SCHEMA_VERSION,
         bestScore: Number.isFinite(data.bestScore) ? data.bestScore : 0,
         bestEndlessScore: Number.isFinite(data.bestEndlessScore) ? data.bestEndlessScore : 0,
         bestEndlessTime: Number.isFinite(data.bestEndlessTime) ? data.bestEndlessTime : 0,
         bestRanks,
+        growth,
         selectedFighter: FIGHTERS[data.selectedFighter] ? data.selectedFighter : "pulse",
         sound: data.sound !== false,
         showShieldValue: data.showShieldValue !== false,
@@ -38,6 +77,7 @@
         bestEndlessScore: 0,
         bestEndlessTime: 0,
         bestRanks: {},
+        growth: createEmptyGrowth(),
         selectedFighter: "pulse",
         sound: true,
         showShieldValue: true,
@@ -57,5 +97,12 @@
     }
   }
 
-  Object.assign(FY, { SAVE_SCHEMA_VERSION, loadSave, saveData });
+  Object.assign(FY, {
+    SAVE_SCHEMA_VERSION,
+    createEmptyGrowth,
+    getEarnedGrowthPoints,
+    normalizeGrowth,
+    loadSave,
+    saveData,
+  });
 })();

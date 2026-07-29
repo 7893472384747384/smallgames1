@@ -2,7 +2,7 @@
   "use strict";
 
   const FY = window.FY;
-  const { WIDTH, HEIGHT, TAU, STORAGE_KEY, ENVIRONMENTS, LEVELS, ENDLESS_ENVIRONMENTS, ENDLESS_BOSSES, FIGHTERS, canvas, ctx, sprites, ui, clamp, lerp, random, distanceSquared, formatScore, formatTime, saveData } = FY;
+  const { WIDTH, HEIGHT, TAU, STORAGE_KEY, ENVIRONMENTS, LEVELS, ENDLESS_ENVIRONMENTS, ENDLESS_BOSSES, FIGHTERS, CAMPAIGN_DIFFICULTY, canvas, ctx, sprites, ui, clamp, lerp, random, distanceSquared, formatScore, formatTime, saveData } = FY;
 
   FY.mixins.director = {
     buildWaves() {
@@ -511,6 +511,10 @@
       };
     },
 
+    getCampaignDifficulty() {
+      return CAMPAIGN_DIFFICULTY[this.level] || CAMPAIGN_DIFFICULTY[1];
+    },
+
     getEnvironmentName(environment) {
       return {
         skyCity: "浮空城",
@@ -685,10 +689,12 @@
       const difficulty =
         this.mode === "endless"
           ? this.getEndlessDifficulty()
-          : { hpScale: 1, speedScale: 1 };
+          : { ...this.getCampaignDifficulty(), speedScale: 1 };
       const hp = stats.hp * (options.hpScale || 1) * difficulty.hpScale;
       const fireRateScale =
-        this.mode === "endless" ? 1 + Math.min(0.4, this.time / 600) : 1;
+        this.mode === "endless"
+          ? 1 + Math.min(0.4, this.time / 600)
+          : difficulty.fireRateScale;
       this.enemies.push({
         type,
         x,
@@ -780,13 +786,19 @@
           partLabels: ["左引雷翼", "右引雷翼"],
         },
       }[kind];
+      const bossHp = Math.round(
+        stats.hp *
+          (this.mode === "campaign"
+            ? this.getCampaignDifficulty().bossHpScale
+            : 1),
+      );
       this.boss = {
         kind,
         x: WIDTH / 2,
         y: -105,
         radius: stats.radius,
-        hp: stats.hp,
-        maxHp: stats.hp,
+        hp: bossHp,
+        maxHp: bossHp,
         age: 0,
         entered: false,
         fireTimer: 0.8,
@@ -801,8 +813,8 @@
             xOffset: -(stats.partOffset || stats.radius * 0.68),
             yOffset: 8,
             radius: 15,
-            hp: Math.round(stats.hp * 0.085),
-            maxHp: Math.round(stats.hp * 0.085),
+            hp: Math.round(bossHp * 0.085),
+            maxHp: Math.round(bossHp * 0.085),
             destroyed: false,
             flash: 0,
           },
@@ -812,8 +824,8 @@
             xOffset: stats.partOffset || stats.radius * 0.68,
             yOffset: 8,
             radius: 15,
-            hp: Math.round(stats.hp * 0.085),
-            maxHp: Math.round(stats.hp * 0.085),
+            hp: Math.round(bossHp * 0.085),
+            maxHp: Math.round(bossHp * 0.085),
             destroyed: false,
             flash: 0,
           },

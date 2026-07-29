@@ -8,7 +8,8 @@ global.window = { FY: {} };
 require("../src/data/catalog.js");
 require("../src/data/balance.js");
 
-const { FIGHTERS, LEVELS, ENVIRONMENTS, BALANCE } = window.FY;
+const { FIGHTERS, LEVELS, ENVIRONMENTS, BALANCE, GROWTH, CAMPAIGN_DIFFICULTY } =
+  window.FY;
 assert.equal(Object.keys(FIGHTERS).length, 4);
 assert.equal(Object.keys(LEVELS).length, 8);
 assert.equal(ENVIRONMENTS.length, 10);
@@ -39,5 +40,17 @@ assert.equal(BALANCE.amplifier.maxCharges, 3);
 assert.equal(BALANCE.amplifier.duration, 7);
 assert.equal(BALANCE.amplifier.weaponCopies, 2);
 assert.ok(Object.isFrozen(BALANCE));
+assert.equal(GROWTH.maxRank, 4);
+assert.equal(GROWTH.attributes.damage.perPoint, 0.04);
+assert.equal(GROWTH.attributes.shield.perPoint, 8);
+assert.equal(Object.keys(GROWTH.attributes).length, 5);
+assert.deepEqual(CAMPAIGN_DIFFICULTY[8], {
+  hpScale: 1.32,
+  bulletSpeedScale: 1.07,
+  fireRateScale: 1.105,
+  bossHpScale: 1.12,
+});
+assert.ok(Object.isFrozen(GROWTH));
+assert.ok(Object.isFrozen(CAMPAIGN_DIFFICULTY));
 
 console.log("Catalog and balance tests passed.");

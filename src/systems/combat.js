@@ -39,7 +39,9 @@
     spawnEnemyBullet(x, y, vx, vy, color, radius) {
       if (this.enemyBullets.length >= 520) return;
       const speedScale =
-        this.mode === "endless" ? this.getEndlessDifficulty().bulletScale : 1;
+        this.mode === "endless"
+          ? this.getEndlessDifficulty().bulletScale
+          : this.getCampaignDifficulty().bulletSpeedScale;
       this.enemyBullets.push({
         x,
         y,
@@ -249,7 +251,11 @@
       this.combo = Math.min(99, this.combo + (enemy.type === "charger" ? 3 : 2));
       this.maxCombo = Math.max(this.maxCombo, Math.floor(this.combo));
       this.comboTimer = 3;
-      this.player.energy = Math.min(100, this.player.energy + (environmental ? 10 : 5));
+      this.player.energy = Math.min(
+        100,
+        this.player.energy +
+          (environmental ? 10 : 5) * this.player.energyGainScale,
+      );
       for (let i = 0; i < 13; i += 1) {
         this.spawnSpark(
           enemy.x,
@@ -334,11 +340,14 @@
       let color = "#7cecff";
       if (pickup.type === "repair") {
         color = "#69f0b0";
-        if (this.player.shield >= 100) {
+        if (this.player.shield >= this.player.maxShield) {
           this.score += 400;
           label = "护盾已满 · +400";
         } else {
-          this.player.shield = Math.min(100, this.player.shield + 30);
+          this.player.shield = Math.min(
+            this.player.maxShield,
+            this.player.shield + 30,
+          );
           label = "护盾修复 +30";
         }
       } else if (pickup.type === "energy") {
@@ -421,7 +430,9 @@
         this.mode === "endless"
           ? [
               "energy",
-              this.player.shield < 70 ? "repair" : "overdrive",
+              this.player.shield < this.player.maxShield * 0.7
+                ? "repair"
+                : "overdrive",
               "amplifier",
               "score",
             ]

@@ -15,6 +15,32 @@ const game = new FY.Game();
     startLevelEight: () => game.start(8),
     startEndless: () => game.startEndless(),
     selectFighter: (fighterId) => game.selectFighter(fighterId),
+    allocateGrowth: (attributeId) => {
+      game.allocateGrowth(attributeId);
+      return game.getSnapshot();
+    },
+    resetGrowth: () => {
+      game.resetGrowth();
+      return game.getSnapshot();
+    },
+    setGrowthTestProgress: (completedLevels = []) => {
+      game.returnToHangar();
+      game.save.bestRanks = Object.fromEntries(
+        completedLevels
+          .map(Number)
+          .filter((level) => FY.LEVELS[level])
+          .map((level) => [level, "C"]),
+      );
+      game.save.growth = FY.createEmptyGrowth();
+      game.save.unlockedLevel = Math.min(
+        Object.keys(FY.LEVELS).length,
+        Math.max(1, ...completedLevels.map((level) => Number(level) + 1)),
+      );
+      FY.saveData(game.save);
+      game.resetWorld();
+      game.updatePersistentUI();
+      return game.getSnapshot();
+    },
     returnToHangar: () => game.returnToHangar(),
     pause: () => {
       game.pause();
