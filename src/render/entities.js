@@ -455,6 +455,10 @@
         ridge: ["#a7e870", "#d5ad65", "#e8ff9b"],
         chiji: ["#ffb35d", "#ff744f", "#fff09a"],
         kuilong: ["#9aeaff", "#b27aff", "#f2d8ff"],
+        shuangyuan: ["#8ff8ff", "#9ebcff", "#edffff"],
+        tianshu: ["#ad9aff", "#79d8ff", "#efe4ff"],
+        zhurong: ["#ffad68", "#ff6b45", "#fff08e"],
+        yaota: ["#77edff", "#f08dff", "#fff4ff"],
       };
       const glow = glowPalettes[boss.kind][boss.phase - 1];
       ctx.shadowBlur = boss.flash > 0 ? 34 : 18;
@@ -469,6 +473,10 @@
         ridge: sprites.bossRidge,
         chiji: sprites.bossChiji,
         kuilong: sprites.bossKuilong,
+        shuangyuan: sprites.bossMirage,
+        tianshu: sprites.bossVolt,
+        zhurong: sprites.bossChiji,
+        yaota: sprites.bossKuilong,
       };
       const bossSprite = bossSprites[boss.kind];
       const spriteSizes = {
@@ -480,10 +488,23 @@
         ridge: [232, 184],
         chiji: [238, 238],
         kuilong: [244, 244],
+        shuangyuan: [236, 174],
+        tianshu: [238, 204],
+        zhurong: [246, 246],
+        yaota: [250, 250],
       };
       const [spriteWidth, spriteHeight] = spriteSizes[boss.kind];
       if (bossSprite.complete && bossSprite.naturalWidth > 0) {
-        ctx.filter = boss.flash > 0 ? "brightness(2.1) saturate(0.35)" : "none";
+        const bossFilters = {
+          shuangyuan: "hue-rotate(145deg) saturate(1.2) brightness(1.15)",
+          tianshu: "hue-rotate(35deg) saturate(0.9) brightness(1.08)",
+          zhurong: "hue-rotate(-18deg) saturate(1.45) brightness(1.1)",
+          yaota: "hue-rotate(52deg) saturate(1.2) brightness(1.16)",
+        };
+        ctx.filter =
+          boss.flash > 0
+            ? "brightness(2.1) saturate(0.35)"
+            : bossFilters[boss.kind] || "none";
         ctx.drawImage(
           bossSprite,
           -spriteWidth / 2,
@@ -612,6 +633,43 @@
           ctx.lineTo(x, 38);
           ctx.stroke();
         });
+      } else if (boss.kind === "shuangyuan") {
+        for (const side of [-1, 1]) {
+          ctx.beginPath();
+          ctx.moveTo(side * 72, -18);
+          ctx.lineTo(side * 48, 4);
+          ctx.lineTo(side * 76, 32);
+          ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.arc(0, -3, 20 + Math.sin(boss.age * 5) * 3, 0, TAU);
+        ctx.stroke();
+      } else if (boss.kind === "tianshu") {
+        for (const side of [-1, 1]) {
+          ctx.beginPath();
+          ctx.arc(side * 72, 5, 18, boss.age * side, boss.age * side + Math.PI * 1.6);
+          ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.arc(0, 0, 13, 0, TAU);
+        ctx.stroke();
+      } else if (boss.kind === "zhurong") {
+        [-74, 0, 74].forEach((x, index) => {
+          ctx.beginPath();
+          ctx.moveTo(x, 28);
+          ctx.lineTo(x + Math.sin(boss.age * 7 + index) * 5, 60);
+          ctx.stroke();
+        });
+      } else if (boss.kind === "yaota") {
+        ctx.rotate(boss.age * 0.45);
+        for (let ray = 0; ray < 6; ray += 1) {
+          ctx.rotate(Math.PI / 3);
+          ctx.beginPath();
+          ctx.moveTo(18, 0);
+          ctx.lineTo(55, 0);
+          ctx.stroke();
+        }
+        ctx.rotate(-boss.age * 0.45);
       } else {
         ctx.beginPath();
         ctx.arc(0, -4, 22 + Math.sin(boss.age * 4) * 2.5, boss.age, boss.age + Math.PI * 1.55);

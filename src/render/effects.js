@@ -223,6 +223,114 @@
       }
     },
 
+    drawFrostWaves() {
+      for (const wave of this.frostWaves) {
+        const active = wave.timer >= wave.strikeAt;
+        const progress = clamp(wave.timer / wave.strikeAt, 0, 1);
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.fillStyle = active
+          ? "rgba(116, 244, 255, 0.26)"
+          : `rgba(134, 202, 255, ${0.04 + progress * 0.09})`;
+        ctx.fillRect(0, wave.y - wave.height / 2, WIDTH, wave.height);
+        ctx.strokeStyle = active ? "#e6ffff" : "rgba(170, 233, 255, 0.8)";
+        ctx.lineWidth = active ? 3.5 : 1.4;
+        ctx.setLineDash(active ? [] : [10, 7]);
+        for (const offset of [-wave.height / 2, wave.height / 2]) {
+          ctx.beginPath();
+          for (let x = 0; x <= WIDTH; x += 18) {
+            const y = wave.y + offset + Math.sin(x * 0.08 + this.ambientTime * 5) * 5;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+    },
+
+    drawGravityWells() {
+      for (const well of this.gravityWells) {
+        const active = well.timer >= well.activeAt;
+        const collapsing = well.timer >= well.collapseAt;
+        ctx.save();
+        ctx.translate(well.x, well.y);
+        ctx.globalCompositeOperation = "lighter";
+        const pulse = well.radius * (0.82 + Math.sin(this.ambientTime * 5) * 0.06);
+        ctx.fillStyle = collapsing ? "rgba(235, 225, 255, 0.55)" : "rgba(112, 84, 214, 0.12)";
+        ctx.beginPath();
+        ctx.arc(0, 0, collapsing ? 24 : pulse, 0, TAU);
+        ctx.fill();
+        ctx.strokeStyle = active ? "#b7a2ff" : "rgba(156, 205, 255, 0.72)";
+        ctx.lineWidth = active ? 2.4 : 1.3;
+        ctx.setLineDash(active ? [] : [8, 7]);
+        for (let ring = 0; ring < 3; ring += 1) {
+          ctx.beginPath();
+          ctx.arc(0, 0, well.radius * (0.42 + ring * 0.28), this.ambientTime * (ring + 1), Math.PI * 1.55 + this.ambientTime * (ring + 1));
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+    },
+
+    drawMagmaVents() {
+      for (const vent of this.magmaVents) {
+        const active = vent.timer >= vent.eruptAt;
+        const progress = clamp(vent.timer / vent.eruptAt, 0, 1);
+        ctx.save();
+        ctx.translate(vent.x, vent.y);
+        ctx.globalCompositeOperation = "lighter";
+        const glow = ctx.createRadialGradient(0, 0, 4, 0, 0, vent.radius);
+        glow.addColorStop(0, active ? "rgba(255,245,172,0.72)" : "rgba(255,156,71,0.12)");
+        glow.addColorStop(0.55, active ? "rgba(255,78,35,0.48)" : "rgba(255,91,48,0.08)");
+        glow.addColorStop(1, "rgba(128,25,18,0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(0, 0, vent.radius, 0, TAU);
+        ctx.fill();
+        ctx.strokeStyle = active ? "#ffe49a" : `rgba(255,112,62,${0.5 + progress * 0.4})`;
+        ctx.lineWidth = active ? 3.5 : 1.6;
+        ctx.setLineDash(active ? [] : [7, 6]);
+        ctx.beginPath();
+        ctx.arc(0, 0, vent.radius, 0, TAU);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+    },
+
+    drawPrismSweeps() {
+      for (const sweep of this.prismSweeps) {
+        const active = sweep.timer >= sweep.strikeAt && sweep.timer <= sweep.activeEnd;
+        const progress = active
+          ? (sweep.timer - sweep.strikeAt) / (sweep.activeEnd - sweep.strikeAt)
+          : sweep.direction > 0
+            ? 0
+            : 1;
+        const x = lerp(-40, WIDTH + 40, sweep.direction > 0 ? progress : 1 - progress);
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        const beam = ctx.createLinearGradient(x - sweep.width, 0, x + sweep.width, 0);
+        beam.addColorStop(0, "rgba(102,238,255,0)");
+        beam.addColorStop(0.35, active ? "rgba(102,238,255,0.45)" : "rgba(102,238,255,0.12)");
+        beam.addColorStop(0.65, active ? "rgba(255,130,239,0.45)" : "rgba(255,130,239,0.12)");
+        beam.addColorStop(1, "rgba(255,130,239,0)");
+        ctx.fillStyle = beam;
+        ctx.fillRect(x - sweep.width, 0, sweep.width * 2, HEIGHT);
+        ctx.strokeStyle = active ? "#fff1ff" : "rgba(190,236,255,0.7)";
+        ctx.lineWidth = active ? 3 : 1.2;
+        ctx.setLineDash(active ? [] : [11, 8]);
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, HEIGHT);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+    },
+
     drawSandFront() {
       const front = this.sandFront;
       if (!front) return;

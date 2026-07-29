@@ -287,6 +287,45 @@ assert.ok(
   ),
 );
 
+const chapterThreeLevels = [
+  { level: 9, environment: "polarNight", kind: "shuangyuan", hp: 5763, weather: "shuangyuanBoss", hazard: "frostWaves", difficulty: [1.38, 1.08, 1.12, 1.13] },
+  { level: 10, environment: "orbitalRuins", kind: "tianshu", hp: 6325, weather: "tianshuBoss", hazard: "gravityWells", difficulty: [1.44, 1.09, 1.135, 1.15] },
+  { level: 11, environment: "volcanicCaldera", kind: "zhurong", hp: 6844, weather: "zhurongBoss", hazard: "magmaVents", difficulty: [1.5, 1.1, 1.15, 1.16] },
+  { level: 12, environment: "prismCitadel", kind: "yaota", hp: 7424, weather: "yaotaBoss", hazard: "prismSweeps", difficulty: [1.56, 1.11, 1.165, 1.16] },
+];
+for (const entry of chapterThreeLevels) {
+  window.__FENGYUN_GAME__.start(entry.level);
+  frameCallback(performance.now() + entry.level * 16);
+  assert.equal(window.__FENGYUN_GAME__.snapshot().environment, entry.environment);
+  assert.deepEqual(window.__FENGYUN_GAME__.snapshot().campaignDifficulty, {
+    hpScale: entry.difficulty[0],
+    bulletSpeedScale: entry.difficulty[1],
+    fireRateScale: entry.difficulty[2],
+    bossHpScale: entry.difficulty[3],
+  });
+  window.__FENGYUN_GAME__.advanceWorld(10);
+  window.__FENGYUN_GAME__.advanceWorld(3);
+  assert.ok(window.__FENGYUN_GAME__.snapshot().hazards[entry.hazard] >= 1);
+  window.__FENGYUN_GAME__.spawnCurrentLevelHazard();
+  frameCallback(performance.now() + entry.level * 20);
+  assert.ok(window.__FENGYUN_GAME__.snapshot().hazards[entry.hazard] >= 1);
+  window.__FENGYUN_GAME__.advanceWorld(1.1);
+  assert.ok(window.__FENGYUN_GAME__.snapshot().hazards[entry.hazard] >= 1);
+  window.__FENGYUN_GAME__.skipToBoss();
+  frameCallback(performance.now() + entry.level * 24);
+  assert.deepEqual(
+    {
+      kind: window.__FENGYUN_GAME__.snapshot().boss.kind,
+      hp: window.__FENGYUN_GAME__.snapshot().boss.hp,
+      weather: window.__FENGYUN_GAME__.snapshot().weather,
+    },
+    { kind: entry.kind, hp: entry.hp, weather: entry.weather },
+  );
+  assert.equal(window.__FENGYUN_GAME__.snapshot().boss.parts.length, 2);
+  window.__FENGYUN_GAME__.advanceWorld(4.5);
+  assert.equal(window.__FENGYUN_GAME__.snapshot().boss.kind, entry.kind);
+}
+
 window.__FENGYUN_GAME__.startEndless();
 assert.deepEqual(
   {
@@ -409,4 +448,4 @@ const bossHpBeforeBombing = window.__FENGYUN_GAME__.snapshot().boss.hp;
 window.__FENGYUN_GAME__.advanceWorld(2);
 assert.ok(window.__FENGYUN_GAME__.snapshot().boss.hp < bossHpBeforeBombing);
 
-console.log("Eight-level campaign, endless mode, and four-fighter selection smoke tests passed.");
+console.log("Twelve-level campaign, endless mode, and four-fighter selection smoke tests passed.");

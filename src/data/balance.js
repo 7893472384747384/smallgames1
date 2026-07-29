@@ -90,6 +90,10 @@
     6: Object.freeze({ hpScale: 1.22, bulletSpeedScale: 1.05, fireRateScale: 1.075, bossHpScale: 1.1 }),
     7: Object.freeze({ hpScale: 1.27, bulletSpeedScale: 1.06, fireRateScale: 1.09, bossHpScale: 1.11 }),
     8: Object.freeze({ hpScale: 1.32, bulletSpeedScale: 1.07, fireRateScale: 1.105, bossHpScale: 1.12 }),
+    9: Object.freeze({ hpScale: 1.38, bulletSpeedScale: 1.08, fireRateScale: 1.12, bossHpScale: 1.13 }),
+    10: Object.freeze({ hpScale: 1.44, bulletSpeedScale: 1.09, fireRateScale: 1.135, bossHpScale: 1.15 }),
+    11: Object.freeze({ hpScale: 1.5, bulletSpeedScale: 1.1, fireRateScale: 1.15, bossHpScale: 1.16 }),
+    12: Object.freeze({ hpScale: 1.56, bulletSpeedScale: 1.11, fireRateScale: 1.165, bossHpScale: 1.16 }),
   });
 
   Object.assign(window.FY, { BALANCE, GROWTH, CAMPAIGN_DIFFICULTY });

@@ -27,6 +27,10 @@
             ridge: "摧毁岚蛟的山河风岩核心",
             chiji: "破坏赤骥的双矢量推进器",
             kuilong: "切断夔龙的双侧引雷翼",
+            shuangyuan: "破坏霜鸢的双侧冷凝器",
+            tianshu: "切断天枢的双重力锚",
+            zhurong: "破坏祝融的双热交换翼",
+            yaota: "切断曜塔的双棱镜翼",
           };
           this.showBanner(
             "BOSS 战",
@@ -66,6 +70,10 @@
       }
       if (boss.kind === "kuilong") {
         this.updateKuilongBoss(dt);
+        return;
+      }
+      if (["shuangyuan", "tianshu", "zhurong", "yaota"].includes(boss.kind)) {
+        this.updateChapterThreeBoss(dt);
         return;
       }
 
@@ -586,6 +594,116 @@
           this.createStormSectors(2, true);
         }
         boss.summonTimer = boss.phase === 3 ? 3.25 : 4.6;
+      }
+      if (boss.hp <= 0) this.destroyBoss();
+    },
+
+    updateChapterThreeBoss(dt) {
+      const boss = this.boss;
+      if (!boss) return;
+      const configs = {
+        shuangyuan: {
+          label: "霜鸢",
+          phaseTwo: "冷凝双翼并联",
+          phaseThree: "极光零界展开",
+          colors: ["#8ff8ff", "#91b9ff"],
+          minion: "medic",
+          hazard: () => this.createFrostWave(),
+        },
+        tianshu: {
+          label: "天枢",
+          phaseTwo: "双重力锚同步",
+          phaseThree: "轨道坍缩启动",
+          colors: ["#b39aff", "#72d8ff"],
+          minion: "minelayer",
+          hazard: () => this.createGravityWell(),
+        },
+        zhurong: {
+          label: "祝融",
+          phaseTwo: "热交换翼过载",
+          phaseThree: "熔核临界喷发",
+          colors: ["#ff985c", "#ffe06f"],
+          minion: "guardian",
+          hazard: () => this.createMagmaVent(),
+        },
+        yaota: {
+          label: "曜塔",
+          phaseTwo: "双棱镜翼展开",
+          phaseThree: "全域净化启动",
+          colors: ["#7beeff", "#f58cff"],
+          minion: "carrier",
+          hazard: () => this.createPrismSweep(Math.random() < 0.5 ? 1 : -1),
+        },
+      };
+      const config = configs[boss.kind];
+      const ratio = boss.hp / boss.maxHp;
+      const nextPhase = ratio > 0.7 ? 1 : ratio > 0.35 ? 2 : 3;
+      if (nextPhase !== boss.phase) {
+        boss.phase = nextPhase;
+        boss.fireTimer = 0.2;
+        boss.summonTimer = 1.8;
+        this.screenFlash = 0.3;
+        this.shake = 10;
+        this.showBanner(
+          nextPhase === 2 ? config.phaseTwo : config.phaseThree,
+          `${config.label}进入第 ${nextPhase} 作战形态`,
+          2.2,
+        );
+      }
+
+      boss.x =
+        WIDTH / 2 +
+        Math.sin(boss.age * (boss.phase === 3 ? 1.42 : 0.82)) *
+          (boss.phase === 3 ? 150 : 120);
+      boss.y = 142 + Math.sin(boss.age * 1.7) * 15;
+      boss.fireTimer -= dt;
+      boss.summonTimer -= dt;
+      const aliveParts = boss.parts.filter((part) => !part.destroyed).length;
+
+      if (boss.fireTimer <= 0) {
+        if (boss.phase === 1) {
+          this.fireFan(boss.x, boss.y + 30, 9, 0.12, 164, config.colors[0]);
+          if (aliveParts > 0) {
+            this.fireAimed(boss.x - 68, boss.y + 18, 198, config.colors[1]);
+            this.fireAimed(boss.x + 68, boss.y + 18, 198, config.colors[1]);
+          }
+          boss.fireTimer = 0.86;
+        } else if (boss.phase === 2) {
+          this.fireRadial(
+            boss.x,
+            boss.y,
+            18,
+            136,
+            config.colors[boss.patternStep % 2],
+            boss.patternStep * 0.17,
+          );
+          if (boss.patternStep % 2 === 0) {
+            this.fireFan(boss.x, boss.y + 30, 7, 0.11, 188, config.colors[1]);
+          }
+          boss.patternStep += 1;
+          boss.fireTimer = 0.66;
+        } else {
+          this.fireSpiral(boss.x - 40, boss.y + 12, boss.patternStep, config.colors[0]);
+          this.fireSpiral(boss.x + 40, boss.y + 12, -boss.patternStep, config.colors[1]);
+          if (boss.patternStep % 4 === 0) {
+            this.fireFan(boss.x, boss.y + 32, 11, 0.1, 205, "#fff0a8");
+          }
+          boss.patternStep += 1;
+          boss.fireTimer = 0.34;
+        }
+      }
+
+      if (boss.summonTimer <= 0) {
+        if (aliveParts > 0) {
+          config.hazard();
+          if (boss.phase === 3 && aliveParts === 2) config.hazard();
+        } else {
+          this.spawnEnemy(config.minion, clamp(boss.x, 60, WIDTH - 60), boss.y + 22, {
+            phase: boss.age,
+            hpScale: 0.86,
+          });
+        }
+        boss.summonTimer = boss.phase === 3 ? 3.1 : 4.3;
       }
       if (boss.hp <= 0) this.destroyBoss();
     },

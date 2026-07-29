@@ -181,6 +181,10 @@
       this.rockfalls = [];
       this.sandFront = null;
       this.stormSectors = [];
+      this.frostWaves = [];
+      this.gravityWells = [];
+      this.magmaVents = [];
+      this.prismSweeps = [];
       this.airstrikes = [];
       this.pickupNotice = null;
       this.runStats = {
@@ -211,6 +215,10 @@
         6: "河谷清岚",
         7: "沙海静流",
         8: "峡谷雷息",
+        9: "极夜晴空",
+        10: "轨道静默",
+        11: "熔脉休眠",
+        12: "棱光待机",
       };
       this.weather = {
         label: this.mode === "endless" ? "风暴边缘" : calmWeather[this.level],
@@ -227,6 +235,10 @@
         nextRock: 999,
         nextSandFront: 999,
         nextStormSector: 999,
+        nextFrost: 999,
+        nextGravity: 999,
+        nextMagma: 999,
+        nextPrism: 999,
       };
       const growth = this.getGrowthBonuses();
       this.player = {
@@ -265,6 +277,7 @@
         energyGainScale: growth.energyGainScale,
         magnetScale: 1,
         amplifierDurationBonus: 0,
+        frostSlowTimer: 0,
       };
       this.pointerTarget.x = this.player.x;
       this.pointerTarget.y = this.player.y;
@@ -471,7 +484,7 @@
       ui.soundButton.textContent = this.save.sound ? "声" : "静";
       ui.soundButton.setAttribute("aria-label", this.save.sound ? "关闭声音" : "开启声音");
       ui.shieldValueToggle.checked = this.save.showShieldValue;
-      const numerals = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+      const numerals = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
       for (const [levelKey, button] of Object.entries(ui.levelButtons)) {
         const level = Number(levelKey);
         button.hidden = this.save.unlockedLevel < level;
@@ -483,7 +496,7 @@
       const growth = this.getGrowthState();
       ui.growthAvailable.textContent = String(growth.available);
       ui.growthSummary.textContent =
-        `已获得 ${growth.earned}/8 点 · 已分配 ${growth.spent} 点 · 可随时免费重置`;
+        `已获得 ${growth.earned}/${MAX_LEVEL} 点 · 已分配 ${growth.spent} 点 · 可随时免费重置`;
       for (const [attributeId, rankLabel] of Object.entries(ui.growthRanks)) {
         const rank = growth.allocations[attributeId];
         rankLabel.textContent = `${rank}/${GROWTH.maxRank}`;
@@ -632,6 +645,9 @@
       player.burstTimer = Math.max(0, player.burstTimer - dt);
       player.overdriveTimer = Math.max(0, player.overdriveTimer - dt);
       player.amplifierTimer = Math.max(0, player.amplifierTimer - dt);
+      player.frostSlowTimer = Math.max(0, player.frostSlowTimer - dt);
+      const movementScale =
+        player.speedScale * (player.frostSlowTimer > 0 ? 0.7 : 1);
       if (player.sinceHit > 3.8 && player.shield < player.maxShield) {
         player.shield = Math.min(
           player.maxShield,
@@ -648,12 +664,12 @@
 
       if (dx || dy) {
         const length = Math.hypot(dx, dy);
-        player.x += (dx / length) * player.speed * player.speedScale * dt;
-        player.y += (dy / length) * player.speed * player.speedScale * dt;
+        player.x += (dx / length) * player.speed * movementScale * dt;
+        player.y += (dy / length) * player.speed * movementScale * dt;
         this.pointerTarget.x = player.x;
         this.pointerTarget.y = player.y;
       } else if (this.pointerActive) {
-        const follow = 1 - Math.exp(-dt * 16 * player.speedScale);
+        const follow = 1 - Math.exp(-dt * 16 * movementScale);
         player.x = lerp(player.x, this.pointerTarget.x, follow);
         player.y = lerp(player.y, this.pointerTarget.y, follow);
       }
@@ -930,7 +946,11 @@
         5: "玄鲸沉入深海。第六航路“山河险渡”已经开放。",
         6: "岚蛟核心停止运转。第七航路“逆风突围”已经开放。",
         7: "赤骥失去推进力。第八航路“雷暴核心”已经开放。",
-        8: "夔龙核心停止放电，雷鸣峡谷重归平静。第二章前四关完成。",
+        8: "夔龙核心停止放电。第三章航路“极光冻原”已经开放。",
+        9: "霜鸢冷凝阵列停止运转。第十航路“失重残环”已经开放。",
+        10: "天枢重力锚已经切断。第十一航路“熔火天堑”已经开放。",
+        11: "祝融熔核停止抽取热能。第十二航路“棱光天城”已经开放。",
+        12: "曜塔净化协议终止，棱光天城恢复自由航路。第三章完成。",
       };
       const failureMessages = {
         1: "调整飞行路线，利用雷击摧毁敌机后再次出击。",
@@ -941,6 +961,10 @@
         6: "落石标记锁定后不再追踪，持续移动即可避开冲击区。",
         7: "保持在沙暴前锋上方，并利用沙墙削弱低空敌机。",
         8: "识别紫色充能扇区，每轮放电后再调整下一处安全位置。",
+        9: "冻结波不会直接伤害战机，但减速期间应优先寻找弹幕空隙。",
+        10: "引力井会持续牵引战机和敌弹，坍缩前务必离开核心范围。",
+        11: "喷口预警结束后会留下熔火区域，避免从原路线立刻折返。",
+        12: "观察光幕起始方向，保持在光束后方移动比迎面穿越更安全。",
       };
       ui.resultMessage.textContent = victory
         ? `${victoryMessages[this.level]} ${rating.summary}${
@@ -949,8 +973,8 @@
         : failureMessages[this.level];
       ui.replayButton.textContent = victory
         ? this.level < MAX_LEVEL
-          ? `进入第${["", "一", "二", "三", "四", "五", "六", "七", "八"][this.level + 1]}关`
-          : "再次挑战第八关"
+          ? `进入第${["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"][this.level + 1]}关`
+          : "再次挑战第十二关"
         : "重新挑战本关";
       setTimeout(() => ui.resultPanel.classList.add("visible"), victory ? 900 : 350);
       if (victory) this.audio.victory();
@@ -990,6 +1014,10 @@
         this.drawRockfalls();
         this.drawSandFront();
         this.drawStormSectors();
+        this.drawFrostWaves();
+        this.drawGravityWells();
+        this.drawMagmaVents();
+        this.drawPrismSweeps();
         this.drawAirstrikes();
         this.drawParticles();
         this.drawPlayerLaser();
@@ -1119,6 +1147,10 @@
           sandFrontEdgeY: this.sandFront ? Number(this.sandFront.edgeY.toFixed(1)) : null,
           stormSectors: this.stormSectors.length,
           stormSectorIndices: this.stormSectors.map((sector) => sector.sector),
+          frostWaves: this.frostWaves.length,
+          gravityWells: this.gravityWells.length,
+          magmaVents: this.magmaVents.length,
+          prismSweeps: this.prismSweeps.length,
         },
         endless:
           this.mode === "endless"
@@ -1150,7 +1182,7 @@
         return;
       }
       if (this.state !== "playing") this.start(this.level);
-      const times = { 1: 68, 2: 57, 3: 58, 4: 58, 5: 65, 6: 67, 7: 70, 8: 75 };
+      const times = { 1: 68, 2: 57, 3: 58, 4: 58, 5: 65, 6: 67, 7: 70, 8: 75, 9: 71, 10: 73, 11: 75, 12: 77 };
       const bossWeather = {
         1: ["boss", "超胞雷暴", "yubo"],
         2: ["mirageBoss", "蜃影云场", "mirage"],
@@ -1160,6 +1192,10 @@
         6: ["ridgeBoss", "山河封锁", "ridge"],
         7: ["chijiBoss", "赤砂追击", "chiji"],
         8: ["kuilongBoss", "雷暴核心", "kuilong"],
+        9: ["shuangyuanBoss", "极光零界", "shuangyuan"],
+        10: ["tianshuBoss", "天枢锁域", "tianshu"],
+        11: ["zhurongBoss", "祝融熔核", "zhurong"],
+        12: ["yaotaBoss", "曜塔净化", "yaota"],
       };
       this.time = times[this.level];
       this.waveIndex = this.waves.length;

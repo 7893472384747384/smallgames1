@@ -11,12 +11,16 @@ require("../src/data/balance.js");
 const { FIGHTERS, LEVELS, ENVIRONMENTS, BALANCE, GROWTH, CAMPAIGN_DIFFICULTY } =
   window.FY;
 assert.equal(Object.keys(FIGHTERS).length, 4);
-assert.equal(Object.keys(LEVELS).length, 8);
-assert.equal(ENVIRONMENTS.length, 10);
+assert.equal(Object.keys(LEVELS).length, 12);
+assert.equal(ENVIRONMENTS.length, 12);
 assert.equal(LEVELS[5].environment, "oceanFront");
 assert.equal(LEVELS[6].environment, "riverValley");
 assert.equal(LEVELS[7].environment, "sandstorm");
 assert.equal(LEVELS[8].environment, "thunderCanyon");
+assert.equal(LEVELS[9].environment, "polarNight");
+assert.equal(LEVELS[10].environment, "orbitalRuins");
+assert.equal(LEVELS[11].environment, "volcanicCaldera");
+assert.equal(LEVELS[12].environment, "prismCitadel");
 for (const asset of ["boss-chiji-game.png", "boss-kuilong-game.png"]) {
   assert.equal(
     fs.existsSync(path.join(__dirname, "..", "assets", "ships", asset)),
@@ -49,6 +53,12 @@ assert.deepEqual(CAMPAIGN_DIFFICULTY[8], {
   bulletSpeedScale: 1.07,
   fireRateScale: 1.105,
   bossHpScale: 1.12,
+});
+assert.deepEqual(CAMPAIGN_DIFFICULTY[12], {
+  hpScale: 1.56,
+  bulletSpeedScale: 1.11,
+  fireRateScale: 1.165,
+  bossHpScale: 1.16,
 });
 assert.ok(Object.isFrozen(GROWTH));
 assert.ok(Object.isFrozen(CAMPAIGN_DIFFICULTY));

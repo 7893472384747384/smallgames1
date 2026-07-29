@@ -1,6 +1,6 @@
 {
   "name": "fengyun-fighter",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "scripts": {
     "check": "node --check src/core/game.js",

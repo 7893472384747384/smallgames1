@@ -30,7 +30,7 @@ require("../src/services/storage.js");
 const migrated = window.FY.loadSave();
 assert.equal(migrated.schemaVersion, 4);
 assert.equal(migrated.selectedFighter, "pulse");
-assert.equal(migrated.unlockedLevel, 8);
+assert.equal(migrated.unlockedLevel, 12);
 assert.equal(migrated.sound, false);
 assert.deepEqual(migrated.bestRanks, { 1: "A", 6: "S" });
 assert.deepEqual(migrated.growth, {
@@ -61,7 +61,7 @@ assert.deepEqual(window.FY.loadSave().growth, {
 });
 assert.equal(
   window.FY.getEarnedGrowthPoints({ 1: "C", 2: "S", 9: "A", 3: "invalid" }),
-  2,
+  3,
 );
 
 console.log("Save migration tests passed.");

@@ -13,6 +13,8 @@
     "orbitalRuins",
     "oceanFront",
     "riverValley",
+    "volcanicCaldera",
+    "prismCitadel",
   ];
 
   const LEVELS = {
@@ -80,6 +82,38 @@
       mission: "雷鸣峡谷的四区引雷阵列已经启动。识别充能扇区，切断双侧引雷翼并摧毁核心舰“夔龙”。",
       clearTitle: "雷暴核心已熄灭",
     },
+    9: {
+      code: "F-09",
+      kicker: "第三章 · 01",
+      title: "极光冻原",
+      environment: "polarNight",
+      mission: "极夜观测站被寒潮舰队占领。穿过冻结波带，破坏双侧冷凝器并击落极光母舰“霜鸢”。",
+      clearTitle: "永夜冰封已解除",
+    },
+    10: {
+      code: "F-10",
+      kicker: "第三章 · 02",
+      title: "失重残环",
+      environment: "orbitalRuins",
+      mission: "轨道残环的重力锚失控。利用引力井改变敌弹轨迹，切断双侧锚机并摧毁“天枢”。",
+      clearTitle: "轨道锚点已稳定",
+    },
+    11: {
+      code: "F-11",
+      kicker: "第三章 · 03",
+      title: "熔火天堑",
+      environment: "volcanicCaldera",
+      mission: "火山带的热能采掘舰引发连锁喷发。躲避熔岩喷口，破坏热交换翼并击破“祝融”。",
+      clearTitle: "熔火反应已停止",
+    },
+    12: {
+      code: "F-12",
+      kicker: "第三章 · 04",
+      title: "棱光天城",
+      environment: "prismCitadel",
+      mission: "高空棱镜城启动全域净化。穿过移动光幕，切断双棱镜翼并摧毁中枢舰“曜塔”。",
+      clearTitle: "棱光天城已解放",
+    },
   };
 
   const ENDLESS_ENVIRONMENTS = [
@@ -93,6 +127,8 @@
     "orbitalRuins",
     "oceanFront",
     "riverValley",
+    "volcanicCaldera",
+    "prismCitadel",
   ];
 
   const ENDLESS_BOSSES = [
@@ -104,6 +140,10 @@
     "ridge",
     "chiji",
     "kuilong",
+    "shuangyuan",
+    "tianshu",
+    "zhurong",
+    "yaota",
   ];
 
   const FIGHTERS = {

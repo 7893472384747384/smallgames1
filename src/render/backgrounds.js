@@ -17,6 +17,8 @@
         orbitalRuins: ["#030711", "#10182d", "#070a17", "#d9e5ff"],
         oceanFront: ["#031b2c", "#07536a", "#042a42", "#b8f7ff"],
         riverValley: ["#071c18", "#245348", "#10291f", "#e1ffd2"],
+        volcanicCaldera: ["#1d0908", "#592018", "#260b0a", "#ffd0a0"],
+        prismCitadel: ["#090b24", "#263466", "#10122d", "#e9e5ff"],
       };
       const palette = palettes[this.environment];
       const gradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
@@ -94,6 +96,8 @@
       else if (this.environment === "polarNight") this.drawPolarAurora();
       else if (this.environment === "oceanFront") this.drawOceanFront();
       else if (this.environment === "riverValley") this.drawRiverValley();
+      else if (this.environment === "volcanicCaldera") this.drawVolcanicCaldera();
+      else if (this.environment === "prismCitadel") this.drawPrismCitadel();
       else this.drawOrbitalRuins();
       const vignette = ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, 170, WIDTH / 2, HEIGHT / 2, 490);
       vignette.addColorStop(0, "rgba(0,0,0,0)");
@@ -547,6 +551,86 @@
         ctx.beginPath();
         ctx.moveTo(center - 21, y);
         ctx.lineTo(center + 21, y + 5);
+        ctx.stroke();
+      }
+      ctx.restore();
+    },
+
+    drawVolcanicCaldera() {
+      const scroll = (this.ambientTime * 30) % 230;
+      ctx.save();
+      ctx.fillStyle = "rgba(47, 14, 13, 0.76)";
+      ctx.strokeStyle = "rgba(255, 111, 62, 0.25)";
+      for (let row = -1; row < 5; row += 1) {
+        const y = row * 230 + scroll;
+        for (const side of [-1, 1]) {
+          const edge = side < 0 ? 0 : WIDTH;
+          ctx.beginPath();
+          ctx.moveTo(edge, y - 120);
+          ctx.lineTo(edge - side * 78, y - 70);
+          ctx.lineTo(edge - side * 42, y - 5);
+          ctx.lineTo(edge - side * 105, y + 75);
+          ctx.lineTo(edge, y + 145);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+      ctx.globalCompositeOperation = "lighter";
+      ctx.strokeStyle = "rgba(255, 98, 45, 0.38)";
+      ctx.lineWidth = 5;
+      for (let seam = 0; seam < 4; seam += 1) {
+        const baseX = 65 + seam * 108;
+        ctx.beginPath();
+        ctx.moveTo(baseX, -30);
+        for (let y = -30; y <= HEIGHT + 40; y += 58) {
+          ctx.lineTo(baseX + Math.sin(y * 0.025 + seam * 1.7) * 24, y);
+        }
+        ctx.stroke();
+      }
+      ctx.fillStyle = "rgba(255, 155, 64, 0.42)";
+      for (let i = 0; i < 22; i += 1) {
+        const x = (i * 83 + this.ambientTime * (18 + (i % 4) * 7)) % (WIDTH + 40) - 20;
+        const y = (i * 47 + this.ambientTime * 92) % HEIGHT;
+        ctx.fillRect(x, y, 2 + (i % 3), 5 + (i % 5));
+      }
+      ctx.restore();
+    },
+
+    drawPrismCitadel() {
+      const scroll = (this.ambientTime * 38) % 210;
+      ctx.save();
+      for (let row = -1; row < 6; row += 1) {
+        const y = row * 210 + scroll;
+        for (let column = 0; column < 5; column += 1) {
+          const x = 38 + column * 96 + ((row + column) % 2) * 17;
+          const height = 46 + ((row * 19 + column * 23) % 70);
+          const tower = ctx.createLinearGradient(x - 24, 0, x + 24, 0);
+          tower.addColorStop(0, "rgba(72, 88, 166, 0.16)");
+          tower.addColorStop(0.5, "rgba(191, 229, 255, 0.2)");
+          tower.addColorStop(1, "rgba(199, 103, 245, 0.14)");
+          ctx.fillStyle = tower;
+          ctx.strokeStyle = "rgba(180, 221, 255, 0.28)";
+          ctx.beginPath();
+          ctx.moveTo(x, y - height - 24);
+          ctx.lineTo(x + 23, y - height);
+          ctx.lineTo(x + 17, y);
+          ctx.lineTo(x - 17, y);
+          ctx.lineTo(x - 23, y - height);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+      ctx.globalCompositeOperation = "lighter";
+      ctx.lineWidth = 1.4;
+      for (let ray = 0; ray < 7; ray += 1) {
+        const hue = ray % 2 ? "rgba(255,128,235,0.16)" : "rgba(103,235,255,0.17)";
+        ctx.strokeStyle = hue;
+        const x = (ray * 79 + this.ambientTime * 42) % (WIDTH + 150) - 75;
+        ctx.beginPath();
+        ctx.moveTo(x, -20);
+        ctx.lineTo(x + 130, HEIGHT + 20);
         ctx.stroke();
       }
       ctx.restore();

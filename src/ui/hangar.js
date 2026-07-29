@@ -3,7 +3,7 @@
 
   const FY = window.FY;
   const { FIGHTERS, LEVELS, GROWTH, ui } = FY;
-  const numerals = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+  const numerals = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
 
   for (const [fighterId, fighter] of Object.entries(FIGHTERS)) {
     const button = document.createElement("button");

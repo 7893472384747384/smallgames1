@@ -310,6 +310,14 @@ button {
   animation: panel-in 300ms ease-out;
 }
 
+#startPanel {
+  justify-content: flex-start;
+  overflow-y: auto;
+  padding-block: 28px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(98, 232, 255, 0.38) transparent;
+}
+
 .overlay-panel.compact {
   inset: 20% 8%;
   border: 1px solid var(--line);

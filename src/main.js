@@ -13,6 +13,10 @@ const game = new FY.Game();
     startLevelSix: () => game.start(6),
     startLevelSeven: () => game.start(7),
     startLevelEight: () => game.start(8),
+    startLevelNine: () => game.start(9),
+    startLevelTen: () => game.start(10),
+    startLevelEleven: () => game.start(11),
+    startLevelTwelve: () => game.start(12),
     startEndless: () => game.startEndless(),
     selectFighter: (fighterId) => game.selectFighter(fighterId),
     allocateGrowth: (attributeId) => {
@@ -99,6 +103,13 @@ const game = new FY.Game();
       ["guardian", "medic", "minelayer", "carrier"].forEach((type, index) => {
         game.spawnEnemy(type, 90 + index * 90, 120, { phase: index });
       });
+      return game.getSnapshot();
+    },
+    spawnCurrentLevelHazard: () => {
+      if (game.level === 9) game.createFrostWave(game.player.y);
+      else if (game.level === 10) game.createGravityWell(game.player.x, game.player.y - 90);
+      else if (game.level === 11) game.createMagmaVent(game.player.x, game.player.y - 90);
+      else if (game.level === 12) game.createPrismSweep(1);
       return game.getSnapshot();
     },
     getCampaignRating: () => game.calculateCampaignRating(),

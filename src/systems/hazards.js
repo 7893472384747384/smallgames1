@@ -34,6 +34,18 @@
       ].includes(type)
         ? 1.2
         : 999;
+      this.weather.nextFrost = ["frost", "blizzard"].includes(type)
+        ? 1.15
+        : 999;
+      this.weather.nextGravity = ["gravity", "debrisGravity"].includes(type)
+        ? 1.2
+        : 999;
+      this.weather.nextMagma = ["magma", "eruption"].includes(type)
+        ? 1.1
+        : 999;
+      this.weather.nextPrism = ["prism", "prismCross"].includes(type)
+        ? 1.15
+        : 999;
       if (
         type === "wind" ||
         type === "storm" ||
@@ -64,6 +76,10 @@
       this.weather.nextRock -= dt;
       this.weather.nextSandFront -= dt;
       this.weather.nextStormSector -= dt;
+      this.weather.nextFrost -= dt;
+      this.weather.nextGravity -= dt;
+      this.weather.nextMagma -= dt;
+      this.weather.nextPrism -= dt;
 
       if (
         this.weather.timer <= 0 &&
@@ -76,6 +92,10 @@
         && this.weather.type !== "ridgeBoss"
         && this.weather.type !== "chijiBoss"
         && this.weather.type !== "kuilongBoss"
+        && this.weather.type !== "shuangyuanBoss"
+        && this.weather.type !== "tianshuBoss"
+        && this.weather.type !== "zhurongBoss"
+        && this.weather.type !== "yaotaBoss"
       ) {
         const calmWeather = {
           1: "高空晴朗",
@@ -86,6 +106,10 @@
           6: "河谷清岚",
           7: "沙海静流",
           8: "峡谷雷息",
+          9: "极夜晴空",
+          10: "轨道静默",
+          11: "熔脉休眠",
+          12: "棱光待机",
         };
         this.setWeather(
           "clear",
@@ -127,6 +151,51 @@
         }
       } else {
         this.weather.targetWind = 0;
+      }
+
+      if (
+        ["frost", "blizzard", "shuangyuanBoss"].includes(this.weather.type) &&
+        this.weather.nextFrost <= 0
+      ) {
+        this.createFrostWave();
+        if (this.weather.type === "blizzard" && Math.random() < 0.4) {
+          this.createFrostWave(random(170, HEIGHT - 130));
+        }
+        this.weather.nextFrost =
+          this.weather.type === "shuangyuanBoss" ? random(2.4, 3.1) : random(3.2, 4.2);
+      }
+
+      if (
+        ["gravity", "debrisGravity", "tianshuBoss"].includes(this.weather.type) &&
+        this.weather.nextGravity <= 0
+      ) {
+        this.createGravityWell();
+        this.weather.nextGravity =
+          this.weather.type === "tianshuBoss" ? random(3.2, 4) : random(4.1, 5.2);
+      }
+
+      if (
+        ["magma", "eruption", "zhurongBoss"].includes(this.weather.type) &&
+        this.weather.nextMagma <= 0
+      ) {
+        this.createMagmaVent();
+        if (this.weather.type === "eruption" && Math.random() < 0.45) {
+          this.createMagmaVent(random(55, WIDTH - 55), random(180, HEIGHT - 120));
+        }
+        this.weather.nextMagma =
+          this.weather.type === "zhurongBoss" ? random(2.4, 3.1) : random(3.2, 4.1);
+      }
+
+      if (
+        ["prism", "prismCross", "yaotaBoss"].includes(this.weather.type) &&
+        this.weather.nextPrism <= 0
+      ) {
+        this.createPrismSweep(Math.random() < 0.5 ? 1 : -1);
+        if (this.weather.type === "prismCross" && Math.random() < 0.4) {
+          this.createPrismSweep(Math.random() < 0.5 ? 1 : -1);
+        }
+        this.weather.nextPrism =
+          this.weather.type === "yaotaBoss" ? random(2.8, 3.5) : random(3.6, 4.5);
       }
       this.weather.wind = lerp(this.weather.wind, this.weather.targetWind, 1 - Math.exp(-dt * 1.6));
 
@@ -243,6 +312,169 @@
       this.updateRockfalls(dt);
       this.updateSandFront(dt);
       this.updateStormSectors(dt);
+      this.updateFrostWaves(dt);
+      this.updateGravityWells(dt);
+      this.updateMagmaVents(dt);
+      this.updatePrismSweeps(dt);
+    },
+
+    createFrostWave(y = clamp(this.player.y + random(-150, 100), 150, HEIGHT - 100)) {
+      this.frostWaves.push({
+        y,
+        height: 72,
+        timer: 0,
+        strikeAt: 0.92,
+        duration: 1.55,
+        struck: false,
+        affectedBullets: new Set(),
+      });
+    },
+
+    updateFrostWaves(dt) {
+      for (const wave of this.frostWaves) {
+        wave.timer += dt;
+        if (!wave.struck && wave.timer >= wave.strikeAt) {
+          wave.struck = true;
+          if (Math.abs(this.player.y - wave.y) < wave.height / 2 + this.player.radius) {
+            this.player.frostSlowTimer = Math.max(this.player.frostSlowTimer, 2.2);
+          }
+          for (const enemy of this.enemies) {
+            if (Math.abs(enemy.y - wave.y) < wave.height / 2 + enemy.radius) {
+              this.damageEnemy(enemy, 48, true);
+            }
+          }
+        }
+        if (wave.timer >= wave.strikeAt) {
+          for (const bullet of this.enemyBullets) {
+            if (
+              !wave.affectedBullets.has(bullet) &&
+              Math.abs(bullet.y - wave.y) < wave.height / 2
+            ) {
+              wave.affectedBullets.add(bullet);
+              bullet.vx *= 0.45;
+              bullet.vy *= 0.45;
+            }
+          }
+        }
+      }
+      this.frostWaves = this.frostWaves.filter((wave) => wave.timer < wave.duration);
+    },
+
+    createGravityWell(
+      x = clamp(this.player.x + random(-130, 130), 70, WIDTH - 70),
+      y = clamp(this.player.y + random(-180, 60), 170, HEIGHT - 120),
+    ) {
+      this.gravityWells.push({
+        x,
+        y,
+        radius: 92,
+        timer: 0,
+        activeAt: 0.8,
+        collapseAt: 3.35,
+        duration: 3.75,
+        collapsed: false,
+      });
+    },
+
+    updateGravityWells(dt) {
+      for (const well of this.gravityWells) {
+        well.timer += dt;
+        if (well.timer >= well.activeAt && well.timer < well.collapseAt) {
+          const pull = (target, strength) => {
+            const dx = well.x - target.x;
+            const dy = well.y - target.y;
+            const distance = Math.max(24, Math.hypot(dx, dy));
+            if (distance > well.radius * 1.75) return;
+            target.x += (dx / distance) * strength * dt;
+            target.y += (dy / distance) * strength * dt;
+          };
+          pull(this.player, 52);
+          this.enemyBullets.forEach((bullet) => pull(bullet, 38));
+        }
+        if (!well.collapsed && well.timer >= well.collapseAt) {
+          well.collapsed = true;
+          const hit = (target) => distanceSquared(target, well) < well.radius * well.radius;
+          if (hit(this.player)) this.hurtPlayer();
+          this.enemies.forEach((enemy) => {
+            if (hit(enemy)) this.damageEnemy(enemy, 74, true);
+          });
+        }
+      }
+      this.gravityWells = this.gravityWells.filter((well) => well.timer < well.duration);
+    },
+
+    createMagmaVent(
+      x = clamp(this.player.x + random(-110, 110), 55, WIDTH - 55),
+      y = clamp(this.player.y + random(-150, 60), 170, HEIGHT - 105),
+    ) {
+      this.magmaVents.push({
+        x,
+        y,
+        radius: 52,
+        timer: 0,
+        eruptAt: 0.9,
+        duration: 2.75,
+        playerHit: false,
+        affectedEnemies: new Set(),
+      });
+    },
+
+    updateMagmaVents(dt) {
+      for (const vent of this.magmaVents) {
+        vent.timer += dt;
+        if (vent.timer < vent.eruptAt) continue;
+        const hit = (target) =>
+          distanceSquared(target, vent) <
+          (vent.radius + target.radius) * (vent.radius + target.radius);
+        if (!vent.playerHit && hit(this.player)) {
+          vent.playerHit = true;
+          this.hurtPlayer();
+        }
+        for (const enemy of this.enemies) {
+          if (!vent.affectedEnemies.has(enemy) && hit(enemy)) {
+            vent.affectedEnemies.add(enemy);
+            this.damageEnemy(enemy, 78, true);
+          }
+        }
+      }
+      this.magmaVents = this.magmaVents.filter((vent) => vent.timer < vent.duration);
+    },
+
+    createPrismSweep(direction = 1) {
+      this.prismSweeps.push({
+        direction,
+        timer: 0,
+        strikeAt: 0.85,
+        activeEnd: 2.4,
+        duration: 2.65,
+        width: 34,
+        affected: new Set(),
+      });
+    },
+
+    updatePrismSweeps(dt) {
+      for (const sweep of this.prismSweeps) {
+        sweep.timer += dt;
+        if (sweep.timer < sweep.strikeAt || sweep.timer > sweep.activeEnd) continue;
+        const progress =
+          (sweep.timer - sweep.strikeAt) / (sweep.activeEnd - sweep.strikeAt);
+        const x =
+          sweep.direction > 0
+            ? lerp(-40, WIDTH + 40, progress)
+            : lerp(WIDTH + 40, -40, progress);
+        const hit = (target) => Math.abs(target.x - x) < sweep.width / 2 + target.radius;
+        if (!sweep.affected.has(this.player) && hit(this.player)) {
+          sweep.affected.add(this.player);
+          this.hurtPlayer();
+        }
+        for (const enemy of this.enemies) {
+          if (!sweep.affected.has(enemy) && hit(enemy)) {
+            sweep.affected.add(enemy);
+            this.damageEnemy(enemy, 70, true);
+          }
+        }
+      }
+      this.prismSweeps = this.prismSweeps.filter((sweep) => sweep.timer < sweep.duration);
     },
 
     createSandFront(bossControlled = false) {

@@ -14,6 +14,10 @@
       if (this.level === 6) return this.buildLevelSixWaves();
       if (this.level === 7) return this.buildLevelSevenWaves();
       if (this.level === 8) return this.buildLevelEightWaves();
+      if (this.level === 9) return this.buildLevelNineWaves();
+      if (this.level === 10) return this.buildLevelTenWaves();
+      if (this.level === 11) return this.buildLevelElevenWaves();
+      if (this.level === 12) return this.buildLevelTwelveWaves();
       return this.buildLevelOneWaves();
     },
 
@@ -409,6 +413,135 @@
       ];
     },
 
+    buildLevelNineWaves() {
+      return [
+        { at: 0.5, run: () => this.showBanner("F-09 极光冻原", "寒潮舰队正在极夜冰盖上空集结", 3.2) },
+        { at: 2.5, run: () => this.spawnScoutV(11) },
+        { at: 7, run: () => this.spawnSweepers(6) },
+        { at: 11, run: () => {
+          this.setWeather("frost", 14, "冻结波带");
+          this.showBanner("低温脉冲", "冰带会减速战机与敌弹，也会削弱敌机", 3);
+        } },
+        { at: 13, run: () => this.spawnEnemy("guardian", 130, -55, { phase: 0.6 }) },
+        { at: 13.5, run: () => this.spawnEnemy("medic", WIDTH - 130, -80, { phase: 1.4 }) },
+        { at: 20, run: () => this.spawnScoutColumns(true) },
+        { at: 27, run: () => {
+          this.setWeather("blizzard", 16, "双重寒潮");
+          this.showBanner("极光暴雪", "连续冰带将切分移动节奏", 2.8);
+          this.spawnMixedWave();
+        } },
+        { at: 34, run: () => this.spawnChargers(7) },
+        { at: 41, run: () => this.spawnEnemy("carrier", WIDTH / 2, -75, { phase: 2.1 }) },
+        { at: 48, run: () => this.spawnSweepers(7) },
+        { at: 55, run: () => {
+          this.setWeather("frost", 13, "极夜冷锋");
+          this.spawnScoutV(12);
+        } },
+        { at: 64, run: () => this.spawnEnemy("minelayer", WIDTH / 2, -65, { phase: 2.8 }) },
+        { at: 71, run: () => {
+          this.setWeather("shuangyuanBoss", 999, "极光零界");
+          this.spawnBoss("shuangyuan");
+        } },
+      ];
+    },
+
+    buildLevelTenWaves() {
+      return [
+        { at: 0.5, run: () => this.showBanner("F-10 失重残环", "轨道碎片正在重力锚之间漂移", 3.2) },
+        { at: 2.5, run: () => this.spawnScoutColumns(true) },
+        { at: 7, run: () => this.spawnChargers(6) },
+        { at: 11, run: () => {
+          this.setWeather("gravity", 15, "局部引力井");
+          this.showBanner("引力异常", "远离紫色核心，利用牵引改变敌弹轨迹", 3);
+        } },
+        { at: 13, run: () => this.spawnEnemy("minelayer", 125, -60, { phase: 0.8 }) },
+        { at: 13.5, run: () => this.spawnEnemy("guardian", WIDTH - 125, -85, { phase: 1.5 }) },
+        { at: 21, run: () => this.spawnScoutV(12) },
+        { at: 28, run: () => {
+          this.setWeather("debrisGravity", 16, "残骸共振");
+          this.showBanner("重力坍缩", "引力井末期会塌缩并伤害范围内敌我", 3);
+          this.spawnMixedWave();
+        } },
+        { at: 35, run: () => this.spawnSweepers(7) },
+        { at: 42, run: () => this.spawnEnemy("carrier", WIDTH / 2, -80, { phase: 2.2 }) },
+        { at: 49, run: () => this.spawnChargers(7) },
+        { at: 56, run: () => {
+          this.setWeather("gravity", 14, "双锚干涉");
+          this.spawnScoutColumns(true);
+        } },
+        { at: 65, run: () => this.spawnEnemy("medic", WIDTH / 2, -65, { phase: 2.7 }) },
+        { at: 73, run: () => {
+          this.setWeather("tianshuBoss", 999, "天枢锁域");
+          this.spawnBoss("tianshu");
+        } },
+      ];
+    },
+
+    buildLevelElevenWaves() {
+      return [
+        { at: 0.5, run: () => this.showBanner("F-11 熔火天堑", "采掘舰正在抽取火山带热能", 3.2) },
+        { at: 2.5, run: () => this.spawnScoutV(12) },
+        { at: 7, run: () => this.spawnSweepers(7) },
+        { at: 11, run: () => {
+          this.setWeather("magma", 15, "熔岩喷口");
+          this.showBanner("地热预警", "离开橙色喷口，熔岩同样会灼伤敌机", 3);
+        } },
+        { at: 13, run: () => this.spawnEnemy("guardian", WIDTH / 2, -60, { phase: 0.9 }) },
+        { at: 20, run: () => this.spawnChargers(7) },
+        { at: 27, run: () => {
+          this.setWeather("eruption", 17, "连锁喷发");
+          this.showBanner("火山带活跃", "多个喷口将留下短暂熔火区域", 3);
+          this.spawnMixedWave();
+        } },
+        { at: 34, run: () => this.spawnEnemy("carrier", 130, -70, { phase: 1.7 }) },
+        { at: 34.5, run: () => this.spawnEnemy("medic", WIDTH - 130, -95, { phase: 2.3 }) },
+        { at: 42, run: () => this.spawnScoutColumns(true) },
+        { at: 50, run: () => this.spawnSweepers(8) },
+        { at: 58, run: () => {
+          this.setWeather("magma", 14, "岩浆回涌");
+          this.spawnChargers(8);
+        } },
+        { at: 67, run: () => this.spawnEnemy("minelayer", WIDTH / 2, -65, { phase: 2.9 }) },
+        { at: 75, run: () => {
+          this.setWeather("zhurongBoss", 999, "祝融熔核");
+          this.spawnBoss("zhurong");
+        } },
+      ];
+    },
+
+    buildLevelTwelveWaves() {
+      return [
+        { at: 0.5, run: () => this.showBanner("F-12 棱光天城", "净化阵列已锁定全部空域", 3.2) },
+        { at: 2.5, run: () => this.spawnScoutColumns(true) },
+        { at: 7, run: () => this.spawnChargers(7) },
+        { at: 11, run: () => {
+          this.setWeather("prism", 15, "棱镜光幕");
+          this.showBanner("光幕横扫", "跟随预警线移动，光束也会切割敌机", 3);
+        } },
+        { at: 13, run: () => this.spawnEnemy("guardian", 120, -60, { phase: 0.8 }) },
+        { at: 13.5, run: () => this.spawnEnemy("medic", WIDTH - 120, -85, { phase: 1.4 }) },
+        { at: 21, run: () => this.spawnScoutV(13) },
+        { at: 28, run: () => {
+          this.setWeather("prismCross", 17, "交错光幕");
+          this.showBanner("双向折射", "两束光幕会从相反方向依次扫过", 3);
+          this.spawnMixedWave();
+        } },
+        { at: 35, run: () => this.spawnEnemy("carrier", WIDTH / 2, -80, { phase: 2.1 }) },
+        { at: 42, run: () => this.spawnSweepers(8) },
+        { at: 50, run: () => this.spawnChargers(8) },
+        { at: 58, run: () => {
+          this.setWeather("prismCross", 15, "全域折射");
+          this.spawnScoutColumns(true);
+        } },
+        { at: 67, run: () => this.spawnEnemy("minelayer", 135, -65, { phase: 2.7 }) },
+        { at: 67.5, run: () => this.spawnEnemy("guardian", WIDTH - 135, -90, { phase: 3.1 }) },
+        { at: 77, run: () => {
+          this.setWeather("yaotaBoss", 999, "曜塔净化");
+          this.spawnBoss("yaota");
+        } },
+      ];
+    },
+
     updateEndlessDirector() {
       if (this.mode !== "endless") return;
       const pressure = Math.floor(this.time / 30) + 1;
@@ -527,6 +660,8 @@
         orbitalRuins: "轨道残骸",
         oceanFront: "远海岛链",
         riverValley: "山河峡谷",
+        volcanicCaldera: "熔火天堑",
+        prismCitadel: "棱光天城",
       }[environment];
     },
 
@@ -577,6 +712,10 @@
         ["crossGrid", 12, "交叉电网"],
         ["reverseGale", 12, "逆压回流"],
         ["overload", 12, "边境过载"],
+        ["frost", 12, "冻结波带"],
+        ["gravity", 12, "局部引力井"],
+        ["magma", 12, "熔岩喷口"],
+        ["prism", 12, "棱镜光幕"],
       ];
       const pool = pressure < 3 ? early : pressure < 6 ? middle : late;
       const event = pool[(Math.floor(this.time / 11) + pressure) % pool.length];
@@ -596,6 +735,10 @@
         ridge: ["ridgeBoss", "山河封锁"],
         chiji: ["chijiBoss", "赤砂追击"],
         kuilong: ["kuilongBoss", "雷暴核心"],
+        shuangyuan: ["shuangyuanBoss", "极光零界"],
+        tianshu: ["tianshuBoss", "天枢锁域"],
+        zhurong: ["zhurongBoss", "祝融熔核"],
+        yaota: ["yaotaBoss", "曜塔净化"],
       }[kind];
       this.setWeather(weather[0], 999, weather[1]);
       this.spawnBoss(kind);
@@ -616,6 +759,10 @@
         ridge: "岚蛟",
         chiji: "赤骥",
         kuilong: "夔龙",
+        shuangyuan: "霜鸢",
+        tianshu: "天枢",
+        zhurong: "祝融",
+        yaota: "曜塔",
       }[kind];
       this.showBanner(
         `无尽 BOSS · ${bossName}`,
@@ -718,7 +865,7 @@
     },
 
     spawnBoss(
-      kind = { 1: "yubo", 2: "mirage", 3: "gale", 4: "volt", 5: "tide", 6: "ridge", 7: "chiji", 8: "kuilong" }[
+      kind = { 1: "yubo", 2: "mirage", 3: "gale", 4: "volt", 5: "tide", 6: "ridge", 7: "chiji", 8: "kuilong", 9: "shuangyuan", 10: "tianshu", 11: "zhurong", 12: "yaota" }[
         this.level
       ],
     ) {
@@ -784,6 +931,42 @@
           name: "雷暴核心舰 · 夔龙",
           partOffset: 76,
           partLabels: ["左引雷翼", "右引雷翼"],
+        },
+        shuangyuan: {
+          radius: 77,
+          hp: 5100,
+          summonTimer: 3.7,
+          intro: "极光母舰展开双侧冷凝阵列",
+          name: "极光母舰 · 霜鸢",
+          partOffset: 78,
+          partLabels: ["左冷凝器", "右冷凝器"],
+        },
+        tianshu: {
+          radius: 79,
+          hp: 5500,
+          summonTimer: 3.6,
+          intro: "轨道重锚舰锁定当前航路",
+          name: "轨道重锚舰 · 天枢",
+          partOffset: 80,
+          partLabels: ["左重力锚", "右重力锚"],
+        },
+        zhurong: {
+          radius: 81,
+          hp: 5900,
+          summonTimer: 3.5,
+          intro: "熔核采掘舰突破火山云层",
+          name: "熔核采掘舰 · 祝融",
+          partOffset: 82,
+          partLabels: ["左热交换翼", "右热交换翼"],
+        },
+        yaota: {
+          radius: 83,
+          hp: 6400,
+          summonTimer: 3.4,
+          intro: "棱光中枢舰执行全域净化",
+          name: "棱光中枢舰 · 曜塔",
+          partOffset: 84,
+          partLabels: ["左棱镜翼", "右棱镜翼"],
         },
       }[kind];
       const bossHp = Math.round(

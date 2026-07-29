@@ -136,6 +136,12 @@
           volt: "电网裁决舰 · 雷狱",
           tide: "潮汐母舰 · 玄鲸",
           ridge: "山河要塞 · 岚蛟",
+          chiji: "逐日追击舰 · 赤骥",
+          kuilong: "雷暴核心舰 · 夔龙",
+          shuangyuan: "极光母舰 · 霜鸢",
+          tianshu: "轨道重锚舰 · 天枢",
+          zhurong: "熔核采掘舰 · 祝融",
+          yaota: "棱光中枢舰 · 曜塔",
         };
         this.drawHudPanel(70, 212, WIDTH - 140, 31);
         ctx.fillStyle = "#bbd6df";
