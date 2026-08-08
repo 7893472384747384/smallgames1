@@ -1,9 +1,10 @@
 {
   "name": "fengyun-fighter",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "scripts": {
     "check": "node --check src/core/game.js",
+    "build:mobile": "node tools/build-standalone.js",
     "test": "node tests/run-all.js"
   }
 }

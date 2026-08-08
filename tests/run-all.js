@@ -3,7 +3,7 @@
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
-const tests = ["catalog.test.js", "storage.test.js", "smoke.js"];
+const tests = ["catalog.test.js", "storage.test.js", "smoke.js", "standalone.test.js"];
 for (const test of tests) {
   const result = spawnSync(process.execPath, [path.join(__dirname, test)], {
     encoding: "utf8",
